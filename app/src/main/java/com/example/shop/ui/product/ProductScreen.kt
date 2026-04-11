@@ -14,9 +14,8 @@ import com.example.shop.viewmodel.ProductViewModel
 @Composable
 fun ProductScreen(
     viewModel: ProductViewModel,
-    onClickItem: (Int) -> Unit // Bạn chọn dùng Int cho ID ở đây
+    onClickItem: (Int) -> Unit
 ) {
-    // Quan sát danh sách sản phẩm từ ViewModel
     val products by viewModel.products.collectAsState()
 
     LazyVerticalGrid(
@@ -30,7 +29,6 @@ fun ProductScreen(
                 oldPrice = "0đ",
                 discount = "0%",
 
-                // Xử lý sự kiện click
                 onClick = { onClickItem(product.id) }
             )
         }

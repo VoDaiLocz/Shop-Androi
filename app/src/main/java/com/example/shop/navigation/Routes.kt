@@ -4,6 +4,7 @@ object Routes {
 
     const val BOARDING = "boarding"
     const val LOGIN = "login"
+    const val REGISTER = "register"
 
     const val HOME = "home"
     const val PRODUCT = "product"

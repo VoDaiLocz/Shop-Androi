@@ -5,15 +5,22 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.shop.data.local.dao.ProductDao
+import com.example.shop.data.local.dao.UserDao
 import com.example.shop.data.model.Product
+import com.example.shop.data.model.User
 
 @Database(
-    entities = [Product::class],
-    version = 1
+    entities = [
+        Product::class,
+        User::class
+    ],
+    version = 2
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun productDao(): ProductDao
+    abstract fun userDao(): UserDao
+
 
     companion object {
         @Volatile
@@ -25,7 +32,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_db"
-                ).build()
+                )
+                .fallbackToDestructiveMigration() //tự động xóa db cũ và tạo mới
+                .build()
                 INSTANCE = instance
                 instance
             }

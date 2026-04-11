@@ -61,6 +61,9 @@ dependencies {
     // 3. Hilt cho Navigation Compose (Cần thiết vì bạn đang dùng navigation-compose 2.7.7)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
+    //Icons
+    implementation("androidx.compose.material:material-icons-extended")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

@@ -8,7 +8,6 @@ import javax.inject.Inject
 class ProductRepository @Inject constructor(
     private val dao: ProductDao
 ) {
-    // Lấy dữ liệu dưới dạng Flow (luôn cập nhật)
     val allProducts: Flow<List<Product>> = dao.getAll()
 
     suspend fun add(product: Product) {
