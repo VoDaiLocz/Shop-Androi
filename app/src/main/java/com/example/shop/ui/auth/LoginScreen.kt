@@ -7,12 +7,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.shop.data.model.User
 import com.example.shop.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (User) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
@@ -38,7 +39,6 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-
         if (errorMessage != null) {
             Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error)
         }
@@ -47,9 +47,10 @@ fun LoginScreen(
 
         Button(
             onClick = {
-                viewModel.login(email, password) { success ->
-                    if (success) {
-                        onLoginSuccess()
+                viewModel.login(email, password) { user ->
+                    if (user != null) {
+                        errorMessage = null
+                        onLoginSuccess(user)
                     } else {
                         errorMessage = "Sai email hoặc mật khẩu!"
                     }
@@ -62,7 +63,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
+        TextButton(
             onClick = onNavigateToRegister,
             modifier = Modifier.fillMaxWidth()
         ) {

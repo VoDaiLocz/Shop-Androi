@@ -1,8 +1,9 @@
-package com.example.shop.di
+package com.example.shop.diimport
 
 import android.content.Context
 import com.example.shop.data.local.dao.ProductDao
 import com.example.shop.data.local.dao.UserDao
+import com.example.shop.data.local.dao.CategoryDao // 1. Thêm import này
 import com.example.shop.data.local.db.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -15,7 +16,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -25,14 +25,18 @@ object AppModule {
     //======================USER============================
     @Provides
     fun providerUserDao(db: AppDatabase): UserDao {
-        return db.userDao() // Gọi hàm này từ AppDatabase của bạn
+        return db.userDao()
     }
-
-
 
     //======================PRODUCT============================
     @Provides
     fun provideProductDao(db: AppDatabase): ProductDao {
-        return db.productDao() // Gọi hàm này từ AppDatabase của bạn
+        return db.productDao()
+    }
+
+    //======================CATEGORY============================
+    @Provides
+    fun provideCategoryDao(db: AppDatabase): CategoryDao {
+        return db.categoryDao()
     }
 }

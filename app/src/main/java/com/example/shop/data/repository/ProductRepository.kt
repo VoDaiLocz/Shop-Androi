@@ -5,12 +5,18 @@ import com.example.shop.data.model.Product
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ProductRepository @Inject constructor(
-    private val dao: ProductDao
-) {
-    val allProducts: Flow<List<Product>> = dao.getAll()
+class ProductRepository @Inject constructor(private val productDao: ProductDao) {
+    fun getAllProducts() = productDao.getAll()
 
-    suspend fun add(product: Product) {
-        dao.insert(product)
-    }
+    //User: Xem sản phẩm theo danh mục
+    fun getProductsByCategory(catId: Int) = productDao.getProductsByCategory(catId)
+
+    //Admin: Thêm sản phẩm
+    suspend fun insertProduct(product: Product) = productDao.insert(product)
+
+    //Admin: Cập nhật
+    suspend fun updateProduct(product: Product) = productDao.update(product)
+
+    //Admin: Xóa sản phẩm
+    suspend fun deleteProduct(product: Product) = productDao.delete(product)
 }

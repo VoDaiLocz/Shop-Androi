@@ -1,5 +1,6 @@
 package com.example.shop.navigation
 
+import AddCategoryScreen
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -8,6 +9,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.shop.admin.ui.category.ManageCategoryScreen
+import com.example.shop.admin.ui.dashboard.DashboardScreen
+import com.example.shop.admin.ui.product.AddProductScreen
+import com.example.shop.admin.ui.product.ManageProductScreen
 import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
@@ -27,17 +32,23 @@ fun MainNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Routes.LOGIN, // Đổi khởi đầu là Login
+        startDestination = Routes.LOGIN,
         modifier = Modifier.padding(padding)
     ) {
-        // --- AUTH SCREENS ---
+        // --- AUTHENTICATION ---
         composable(Routes.LOGIN) {
             val authViewModel: AuthViewModel = hiltViewModel()
             LoginScreen(
                 viewModel = authViewModel,
-                onLoginSuccess = {
-                    navController.navigate(Routes.HOME) {
-                        popUpTo(Routes.LOGIN) { inclusive = true } // Xóa màn Login khỏi stack
+                onLoginSuccess = { user ->
+                    if (user.role.trim().equals("ADMIN", ignoreCase = true)) {
+                        navController.navigate(Routes.ADMIN_DASHBOARD) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.LOGIN) { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
@@ -50,16 +61,51 @@ fun MainNavGraph(
             val authViewModel: AuthViewModel = hiltViewModel()
             RegisterScreen(
                 viewModel = authViewModel,
-                onRegisterSuccess = {
-                    navController.popBackStack()
-                },
-                onBackToLogin = {
-                    navController.popBackStack()
+                onRegisterSuccess = { navController.popBackStack() },
+                onBackToLogin = { navController.popBackStack() }
+            )
+        }
+
+        // --- ADMIN DASHBOARD ---
+        composable(Routes.ADMIN_DASHBOARD) {
+            DashboardScreen(
+                onManageProducts = { navController.navigate(Routes.ADMIN_MANAGE_PRODUCT) },
+                onManageCategories = { navController.navigate(Routes.ADMIN_MANAGE_CATEGORY) },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.ADMIN_DASHBOARD) { inclusive = true }
+                    }
                 }
             )
         }
 
+        composable(Routes.ADMIN_MANAGE_PRODUCT) {
+            ManageProductScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddProduct = { navController.navigate(Routes.ADMIN_ADD_PRODUCT) }
+            )
+        }
 
+        composable(Routes.ADMIN_ADD_PRODUCT) {
+            AddProductScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.ADMIN_MANAGE_CATEGORY) {
+            ManageCategoryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddCategory = { navController.navigate(Routes.ADMIN_ADD_CATEGORY) }
+            )
+        }
+
+        composable(Routes.ADMIN_ADD_CATEGORY) {
+            AddCategoryScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // --- USER SCREENS ---
         composable(Routes.HOME) {
             HomeScreen(
                 onOpenProduct = { navController.navigate(Routes.PRODUCT) },
@@ -67,49 +113,33 @@ fun MainNavGraph(
             )
         }
 
-        // Màn hình Danh sách sản phẩm
         composable(Routes.PRODUCT) {
             val productViewModel: ProductViewModel = hiltViewModel()
-
             ProductScreen(
                 viewModel = productViewModel,
-                onClickItem = { productIdInt ->
-                    navController.navigate("${Routes.PRODUCT_DETAIL}/$productIdInt")
-                }
+                onClickItem = { id -> navController.navigate("${Routes.PRODUCT_DETAIL}/$id") }
             )
         }
 
         composable("${Routes.PRODUCT_DETAIL}/{id}") { backStackEntry ->
-            val idString = backStackEntry.arguments?.getString("id") ?: "0"
-
-            // Nếu ProductDetailScreen cần lấy dữ liệu sản phẩm,
-            // bạn cũng có thể dùng hiltViewModel() tại đây.
+            val id = backStackEntry.arguments?.getString("id") ?: "0"
             ProductDetailScreen(
-                productId = idString,
-                onAddToCart = {
-                    navController.navigate(Routes.CART)
-                }
+                productId = id,
+                onAddToCart = { navController.navigate(Routes.CART) }
             )
         }
 
         composable(Routes.CART) {
-            CartScreen {
-                navController.navigate(Routes.CHECKOUT)
-            }
+            CartScreen(onCheckout = { navController.navigate(Routes.CHECKOUT) })
         }
 
         composable(Routes.CHECKOUT) {
-            CheckoutScreen {
+            CheckoutScreen(onPlaceOrder = {
                 navController.navigate(Routes.ORDER)
-            }
+            })
         }
 
-        composable(Routes.ORDER) {
-            OrderScreen()
-        }
-
-        composable(Routes.PROFILE) {
-            ProfileScreen()
-        }
+        composable(Routes.ORDER) { OrderScreen() }
+        composable(Routes.PROFILE) { ProfileScreen() }
     }
 }

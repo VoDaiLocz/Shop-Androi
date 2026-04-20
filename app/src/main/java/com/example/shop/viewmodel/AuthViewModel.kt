@@ -18,14 +18,14 @@ class AuthViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
-    fun login(email: String, password: String, onResult: (Boolean) -> Unit) {
+    fun login(email: String, password: String, onResult: (User?) -> Unit) {
         viewModelScope.launch {
             val user = authRepository.login(email, password)
             if (user != null) {
                 _isLoggedIn.value = true
-                onResult(true)
+                onResult(user) // Trả về toàn bộ thông tin user (bao gồm role)
             } else {
-                onResult(false)
+                onResult(null)
             }
         }
     }
@@ -33,9 +33,10 @@ class AuthViewModel @Inject constructor(
     fun register(email: String, pass: String, name: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val newUser = User(
-                name = name,
+                username = name,
                 email = email,
-                password = pass
+                password = pass,
+                role = "USER"
             )
 
             val isSuccess = authRepository.register(newUser)

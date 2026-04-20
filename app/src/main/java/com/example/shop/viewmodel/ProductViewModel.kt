@@ -1,6 +1,6 @@
 package com.example.shop.viewmodel
 
-import androidx.activity.result.launch
+// Xóa dòng import androidx.activity.result.launch thừa này
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +21,7 @@ class ProductViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            repo.allProducts.collect { productList ->
+            repo.getAllProducts().collect { productList ->
                 _products.value = productList
             }
         }
