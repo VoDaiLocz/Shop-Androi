@@ -11,6 +11,8 @@ class CategoryRepository @Inject constructor(
     //User và Admin: Xem danh sách
     fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
 
+    fun getCategoryById(id: Int): Flow<Category?> = categoryDao.getCategoryById(id)
+
     //Admin: Thêm, Xóa, Sửa
     suspend fun addCategory(category: Category) = categoryDao.insertCategory(category)
     suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)

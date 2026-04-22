@@ -19,6 +19,9 @@ object Routes {
     const val ADMIN_DASHBOARD = "admin_dashboard"
     const val ADMIN_MANAGE_PRODUCT = "admin_manage_product"
     const val ADMIN_ADD_PRODUCT = "admin_add_product"
+    const val ADMIN_UPDATE_PRODUCT = "admin_update_product"
     const val ADMIN_MANAGE_CATEGORY = "admin_manage_category"
     const val ADMIN_ADD_CATEGORY = "admin_add_category"
+    const val ADMIN_UPDATE_CATEGORY = "admin_update_category"
+
 }

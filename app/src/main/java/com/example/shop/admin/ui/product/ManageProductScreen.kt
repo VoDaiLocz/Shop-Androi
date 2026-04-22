@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import com.example.shop.data.model.Product
 fun ManageProductScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAddProduct: () -> Unit,
+    onNavigateToUpdateProduct: (Int) -> Unit,
     viewModel: AdminProductViewModel = hiltViewModel()
 ) {
     // Lấy dữ liệu từ ViewModel
@@ -126,7 +128,8 @@ fun ManageProductScreen(
                     items(filteredProducts) { product ->
                         ProductAdminItem(
                             product = product,
-                            onDelete = { viewModel.deleteProduct(product) }
+                            onDelete = { viewModel.deleteProduct(product) },
+                            onEdit = { onNavigateToUpdateProduct(product.id) }
                         )
                     }
                 }
@@ -138,10 +141,11 @@ fun ManageProductScreen(
 @Composable
 fun ProductAdminItem(
     product: Product,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onEdit() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -168,14 +172,24 @@ fun ProductAdminItem(
                     color = Color.Gray
                 )
             }
+            Row {
+                IconButton(onClick = onEdit) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Sửa sản phẩm",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Xóa sản phẩm",
-                    tint = Color.Red
-                )
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Xóa sản phẩm",
+                        tint = Color.Red
+                    )
+                }
             }
+
         }
     }
 }

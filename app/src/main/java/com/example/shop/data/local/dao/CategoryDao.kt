@@ -14,6 +14,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories")
     fun getAllCategories(): Flow<List<Category>>
 
+    @Query("SELECT * FROM categories WHERE id = :id")
+    fun getCategoryById(id: Int): Flow<Category?>
+
     //admin ADD
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: Category)

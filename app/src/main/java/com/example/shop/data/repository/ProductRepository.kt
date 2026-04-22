@@ -11,6 +11,8 @@ class ProductRepository @Inject constructor(private val productDao: ProductDao) 
     //User: Xem sản phẩm theo danh mục
     fun getProductsByCategory(catId: Int) = productDao.getProductsByCategory(catId)
 
+    fun getProductById(productId: Int): Flow<Product?> = productDao.getProductById(productId)
+
     //Admin: Thêm sản phẩm
     suspend fun insertProduct(product: Product) = productDao.insert(product)
 

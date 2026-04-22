@@ -19,7 +19,7 @@ interface ProductDao {
     fun getProductsByCategory(catId: Int): Flow<List<Product>>
 
     @Query("SELECT * FROM products WHERE id = :productId")
-    suspend fun getProductById(productId: Int): Product?
+    fun getProductById(productId: Int): Flow<Product?>
 
     // Admin: Thêm sản phẩm
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -7,12 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.shop.admin.ui.category.ManageCategoryScreen
+import com.example.shop.admin.ui.category.UpdateCategoryScreen
 import com.example.shop.admin.ui.dashboard.DashboardScreen
 import com.example.shop.admin.ui.product.AddProductScreen
 import com.example.shop.admin.ui.product.ManageProductScreen
+import com.example.shop.admin.ui.product.UpdateProductScreen
 import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
@@ -78,11 +82,13 @@ fun MainNavGraph(
                 }
             )
         }
-
+        // ===================ADMIN PRODUCT====================================
         composable(Routes.ADMIN_MANAGE_PRODUCT) {
             ManageProductScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddProduct = { navController.navigate(Routes.ADMIN_ADD_PRODUCT) }
+                onNavigateToAddProduct = { navController.navigate(Routes.ADMIN_ADD_PRODUCT) },
+                onNavigateToUpdateProduct = { productId ->
+                    navController.navigate("${Routes.ADMIN_UPDATE_PRODUCT}/$productId")                }
             )
         }
 
@@ -92,15 +98,40 @@ fun MainNavGraph(
             )
         }
 
+        composable(
+            route = "${Routes.ADMIN_UPDATE_PRODUCT}/{productId}",
+            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("productId") ?: 0
+            UpdateProductScreen(
+                productId = productId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        //==================== ADMIN CATEGORY====================================
         composable(Routes.ADMIN_MANAGE_CATEGORY) {
             ManageCategoryScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddCategory = { navController.navigate(Routes.ADMIN_ADD_CATEGORY) }
+                onNavigateToAddCategory = { navController.navigate(Routes.ADMIN_ADD_CATEGORY) },
+                onNavigateToUpdateCategory = { categoryId ->
+                    navController.navigate("${Routes.ADMIN_UPDATE_CATEGORY}/$categoryId")
+                }
             )
         }
 
         composable(Routes.ADMIN_ADD_CATEGORY) {
             AddCategoryScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "${Routes.ADMIN_UPDATE_CATEGORY}/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 0
+            UpdateCategoryScreen(
+                categoryId = categoryId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

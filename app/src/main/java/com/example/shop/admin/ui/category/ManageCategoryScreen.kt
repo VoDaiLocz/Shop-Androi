@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +25,7 @@ import com.example.shop.data.model.Category
 fun ManageCategoryScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAddCategory: () -> Unit,
+    onNavigateToUpdateCategory: (Int) -> Unit,
     viewModel: AdminCategoryViewModel = hiltViewModel()
 ) {
     val categories by viewModel.categories.collectAsState()
@@ -57,6 +59,9 @@ fun ManageCategoryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(category.name, style = MaterialTheme.typography.titleMedium)
+                        IconButton(onClick = { onNavigateToUpdateCategory(category.id) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Sửa")
+                        }
                         IconButton(onClick = { viewModel.deleteCategory(category) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Xóa", tint = Color.Red)
                         }

@@ -7,6 +7,7 @@ import com.example.shop.data.model.Product
 import com.example.shop.data.repository.CategoryRepository
 import com.example.shop.data.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -16,18 +17,23 @@ import javax.inject.Inject
 @HiltViewModel
 class AdminProductViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val categoryRepository: CategoryRepository // Cần thiết để chọn Category khi thêm Product
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
-    //Lấy danh sách toàn bộ sản phẩm để Admin quản lý
+    // Lấy danh sách toàn bộ sản phẩm để Admin quản lý
     val allProducts: StateFlow<List<Product>> = productRepository.getAllProducts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    //Lấy danh mục để Admin chọn khi thêm/sửa sản phẩm
+    // Lấy danh mục để Admin chọn khi thêm/sửa sản phẩm
     val allCategories: StateFlow<List<Category>> = categoryRepository.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    //Thêm Sản phẩm
+    // --- SỬA LỖI: Thêm hàm lấy sản phẩm theo ID ---
+    fun getProductById(productId: Int): Flow<Product?> {
+        return productRepository.getProductById(productId)
+    }
+
+    // Thêm Sản phẩm
     fun addProduct(
         name: String,
         price: Double,
@@ -49,14 +55,30 @@ class AdminProductViewModel @Inject constructor(
         }
     }
 
-    //Cập nhật Sản phẩm
-    fun updateProduct(product: Product) {
+    fun updateProduct(
+        id: Int,
+        name: String,
+        price: Double,
+        description: String,
+        imageUrl: String,
+        quantity: Int,
+        categoryId: Int
+    ) {
         viewModelScope.launch {
-            productRepository.updateProduct(product)
+            val updatedProduct = Product(
+                id = id,
+                name = name,
+                price = price,
+                description = description,
+                imageUrl = imageUrl,
+                quantity = quantity,
+                categoryId = categoryId
+            )
+            productRepository.updateProduct(updatedProduct)
         }
     }
 
-    //Xóa Sản phẩm
+    // Xóa Sản phẩm
     fun deleteProduct(product: Product) {
         viewModelScope.launch {
             productRepository.deleteProduct(product)
