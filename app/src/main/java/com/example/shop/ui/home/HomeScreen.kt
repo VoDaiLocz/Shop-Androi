@@ -25,22 +25,15 @@ import com.example.shop.viewmodel.UserCategoryViewModel
 @Composable
 fun HomeScreen(
     onOpenProduct: (String) -> Unit,
+    onOpenCategory: (Int) -> Unit, // THÊM THAM SỐ NÀY
     onOpenCart: () -> Unit,
     productViewModel: ProductViewModel = hiltViewModel(),
-    categoryViewModel: UserCategoryViewModel = hiltViewModel() // Inject thêm CategoryViewModel
+    categoryViewModel: UserCategoryViewModel = hiltViewModel()
 ) {
     val products by productViewModel.products.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()
 
-    // Lưu ID của Category đang được chọn (null nghĩa là chọn "Tất cả")
-    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
-
-    // Lọc sản phẩm theo Category đã chọn
-    val filteredProducts = if (selectedCategoryId == null) {
-        products
-    } else {
-        products.filter { it.categoryId == selectedCategoryId }
-    }
+    // BỎ logic selectedCategoryId và filteredProducts vì chúng ta sẽ chuyển trang
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -52,9 +45,9 @@ fun HomeScreen(
             }
         )
 
-        // --- THANH CHỌN CATEGORY---
+        // --- THANH CHỌN CATEGORY ---
         Text(
-            text = "Danh mục",
+            text = "Danh mục sản phẩm",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -69,52 +62,47 @@ fun HomeScreen(
             item {
                 CategoryChip(
                     name = "Tất cả",
-                    isSelected = selectedCategoryId == null,
-                    onClick = { selectedCategoryId = null }
+                    isSelected = false, // Luôn false vì nhấn xong là chuyển trang luôn
+                    onClick = { onOpenCategory(-1) } // -1 đại diện cho "Tất cả"
                 )
             }
 
             items(categories) { category ->
                 CategoryChip(
                     name = category.name,
-                    isSelected = selectedCategoryId == category.id,
-                    onClick = { selectedCategoryId = category.id }
+                    isSelected = false,
+                    onClick = { onOpenCategory(category.id) } // CHUYỂN SANG PRODUCTSCREEN KÈM ID
                 )
             }
         }
 
-        // --- DANH SÁCH SẢN PHẨM ---
-        if (filteredProducts.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Không tìm thấy sản phẩm nào trong mục này.")
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(filteredProducts) { product ->
-                    ProductItem(
-                        name = product.name,
-                        price = "${product.price} VNĐ",
-                        oldPrice = "",
-                        discount = "",
-                        onClick = {
-                            onOpenProduct(product.id.toString())
-                        }
-                    )
-                }
+        // --- SẢN PHẨM GỢI Ý ---
+        Text(
+            text = "Sản phẩm mới nhất",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Chỉ hiện tối đa 10 sản phẩm tiêu biểu ở trang Home
+            items(products.take(10)) { product ->
+                ProductItem(
+                    name = product.name,
+                    price = "${product.price} VNĐ",
+                    oldPrice = "",
+                    discount = "",
+                    onClick = { onOpenProduct(product.id.toString()) }
+                )
             }
         }
     }
 }
-
 
 @Composable
 fun CategoryChip(

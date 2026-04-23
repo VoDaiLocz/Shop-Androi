@@ -139,24 +139,29 @@ fun MainNavGraph(
         // --- USER SCREENS ---
         composable(Routes.HOME) {
             HomeScreen(
-                onOpenProduct = { navController.navigate(Routes.PRODUCT) },
+                onOpenProduct = { id -> navController.navigate("${Routes.PRODUCT_DETAIL}/$id") },
+                onOpenCategory = { id -> navController.navigate("${Routes.PRODUCT}/$id") }, // ĐÂY LÀ CHỖ CHUYỂN TRANG
                 onOpenCart = { navController.navigate(Routes.CART) }
             )
         }
 
-        composable(Routes.PRODUCT) {
-            val productViewModel: ProductViewModel = hiltViewModel()
+        composable("${Routes.PRODUCT}/{categoryId}") { backStackEntry ->
+            val catId = backStackEntry.arguments?.getString("categoryId")?.toInt() ?: -1
             ProductScreen(
-                viewModel = productViewModel,
+                categoryId = catId,
+                viewModel = hiltViewModel(),
+                onNavigateBack = { navController.popBackStack() },
                 onClickItem = { id -> navController.navigate("${Routes.PRODUCT_DETAIL}/$id") }
             )
         }
+
 
         composable("${Routes.PRODUCT_DETAIL}/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id") ?: "0"
             ProductDetailScreen(
                 productId = id,
-                onAddToCart = { navController.navigate(Routes.CART) }
+                onAddToCart = { navController.navigate(Routes.CART) },
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
