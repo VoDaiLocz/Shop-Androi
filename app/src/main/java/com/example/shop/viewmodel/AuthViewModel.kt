@@ -12,18 +12,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository // Repository này là Singleton
 ) : ViewModel() {
 
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
+    //Không tự tạo StateFlow riêng, mà lấy từ Repository
+    val currentUser: StateFlow<User?> = authRepository.currentUser
+
     fun login(email: String, password: String, onResult: (User?) -> Unit) {
         viewModelScope.launch {
+            // Gọi hàm login của repository (hàm này đã có lệnh gán user vào StateFlow bên trong nó)
             val user = authRepository.login(email, password)
             if (user != null) {
                 _isLoggedIn.value = true
-                onResult(user) // Trả về toàn bộ thông tin user (bao gồm role)
+                onResult(user)
             } else {
                 onResult(null)
             }
@@ -38,9 +42,15 @@ class AuthViewModel @Inject constructor(
                 password = pass,
                 role = "USER"
             )
-
             val isSuccess = authRepository.register(newUser)
             onResult(isSuccess)
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            _isLoggedIn.value = false
+            authRepository.logout() // Gọi hàm logout của repository
         }
     }
 }

@@ -4,42 +4,59 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shop.data.model.CartItem
 import com.example.shop.data.repository.CartRepository
+import com.example.shop.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
-    private val repository: CartRepository
+    private val repository: CartRepository,
+    private val authRepository: AuthRepository // Inject thêm AuthRepository
 ) : ViewModel() {
 
-    // Lấy dữ liệu thật từ Database (Flow tự động cập nhật UI)
-    val cartItems: StateFlow<List<CartItem>> = repository.allItems
-        .stateIn(viewModelScope,
-            SharingStarted.WhileSubscribed(5000), emptyList())
+    // 1. Lấy dữ liệu giỏ hàng dựa trên ID của người dùng đang đăng nhập
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val cartItems: StateFlow<List<CartItem>> = authRepository.currentUser
+        .flatMapLatest { user ->
+            if (user != null) {
+                // Chỉ lấy món hàng của User có ID này
+                repository.getItemsForUser(user.id)
+            } else {
+                flowOf(emptyList())
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
-    // Tính tổng tiền từ danh sách thật
+    // Tính tổng tiền
     val totalPrice: Double
         get() = cartItems.value.sumOf { it.price * it.quantity }
 
-    // --- THÊM HÀM NÀY ĐỂ PRODUCT DETAIL GỌI ---
+    // Thêm vào giỏ hàng
     fun addToCart(item: CartItem) {
         viewModelScope.launch {
-            repository.addToCart(item)
+            // Lấy user hiện tại để đảm bảo item được gán đúng userId
+            val currentUser = authRepository.currentUser.first()
+            if (currentUser != null) {
+                repository.addToCart(item.copy(userId = currentUser.id))
+            }
         }
     }
 
-    // Tăng số lượng (Dùng trong CartScreen)
+    // Tăng số lượng
     fun increaseQuantity(item: CartItem) {
         viewModelScope.launch {
             repository.updateQuantity(item.copy(quantity = item.quantity + 1))
         }
     }
 
-    // Giảm số lượng (Dùng trong CartScreen)
+    // Giảm số lượng
     fun decreaseQuantity(item: CartItem) {
         if (item.quantity > 1) {
             viewModelScope.launch {
@@ -48,7 +65,7 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    // Xóa món hàng (Dùng trong CartScreen)
+    // Xóa món hàng
     fun removeFromCart(item: CartItem) {
         viewModelScope.launch {
             repository.deleteItem(item)

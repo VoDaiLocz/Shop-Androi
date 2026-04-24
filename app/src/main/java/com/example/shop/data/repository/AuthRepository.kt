@@ -2,12 +2,24 @@ package com.example.shop.data.repository
 
 import com.example.shop.data.local.dao.UserDao
 import com.example.shop.data.model.User
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
     private val userDao: UserDao
 ) {
-    suspend fun login(email: String, password: String) = userDao.login(email, password)
+    // 1. Thêm biến này để lưu trữ User hiện tại
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+    suspend fun login(email: String, password: String): User? {
+        val user = userDao.login(email, password)
+        // 2. Gán user tìm được vào StateFlow nếu login thành công
+        _currentUser.value = user
+        return user
+    }
 
     suspend fun register(user: User): Boolean {
         val existingUser = userDao.getUserByEmail(user.email)
@@ -17,5 +29,10 @@ class AuthRepository @Inject constructor(
         } else {
             false
         }
+    }
+
+    // 3. Thêm hàm logout
+    fun logout() {
+        _currentUser.value = null
     }
 }

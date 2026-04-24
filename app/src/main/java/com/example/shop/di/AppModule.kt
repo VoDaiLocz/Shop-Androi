@@ -5,7 +5,11 @@ import com.example.shop.data.local.dao.CartDao
 import com.example.shop.data.local.dao.ProductDao
 import com.example.shop.data.local.dao.UserDao
 import com.example.shop.data.local.dao.CategoryDao
+import com.example.shop.data.local.dao.OrderDao
 import com.example.shop.data.local.db.AppDatabase
+import com.example.shop.data.repository.AuthRepository
+import com.example.shop.data.repository.CartRepository
+import com.example.shop.data.repository.OrderRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,5 +49,31 @@ object AppModule {
     @Provides
     fun provideCartDao(db: AppDatabase): CartDao {
         return db.cartDao()
+    }
+
+    //======================Order====================================
+    @Provides
+    fun provideOrderDao(db: AppDatabase): OrderDao {
+        return db.orderDao()
+    }
+
+    // --- REPOSITORIES (BẮT BUỘC PHẢI CÓ @SINGLETON Ở ĐÂY) ---
+
+    @Provides
+    @Singleton // Giúp giữ thông tin User khi chuyển màn hình
+    fun provideAuthRepository(userDao: UserDao): AuthRepository {
+        return AuthRepository(userDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartRepository(cartDao: CartDao): CartRepository {
+        return CartRepository(cartDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOrderRepository(orderDao: OrderDao, cartDao: CartDao): OrderRepository {
+        return OrderRepository(orderDao, cartDao)
     }
 }

@@ -1,15 +1,28 @@
 package com.example.shop.data.model
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import java.sql.Timestamp
 
-@Entity(tableName = "orders")
+@Entity(
+    tableName = "orders",
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["id"],
+            childColumns = ["userId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class Order(
-    @PrimaryKey
-    val id: String = "", //Mã Đơn hàng
-    val userId: String = "",
-    val total: Double = 0.0,
-    val timestamp: Long = System.currentTimeMillis(), //Thời gian đặt hàng
-    val status: String = "PENDING" // PENDING, SHIPPED, COMPLETED
+    @PrimaryKey(autoGenerate = true)
+    val orderId: Int = 0,
+    val userId: Int,
+    val orderDate: Long,
+    val totalPrice: Double,
+    val status: String = "Pending",
+    val address: String,
+    val phoneNumber: String
 )

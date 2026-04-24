@@ -170,18 +170,40 @@ fun MainNavGraph(
 
         composable(Routes.CART) {
             CartScreen(
-                onNavigateBack = { navController.popBackStack() }, // THÊM DÒNG NÀY
+                onNavigateBack = { navController.popBackStack() },
                 onCheckout = { navController.navigate(Routes.CHECKOUT) }
             )
         }
 
+        // Trong NavHost của bạn
         composable(Routes.CHECKOUT) {
-            CheckoutScreen(onPlaceOrder = {
-                navController.navigate(Routes.ORDER)
-            })
+            CheckoutScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onPlaceOrder = {
+                    navController.navigate(Routes.ORDER) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                    }
+                }
+            )
         }
 
-        composable(Routes.ORDER) { OrderScreen() }
+        composable(Routes.ORDER) {
+            OrderScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Routes.PROFILE) { ProfileScreen() }
+
+//        composable(Routes.PROFILE) {
+//            ProfileScreen(
+//                onNavigateToOrders = { navController.navigate(Routes.ORDER) },
+//                onLogout = {
+//                    navController.navigate(Routes.LOGIN) {
+//                        popUpTo(0) { inclusive = true } // Xóa sạch lịch sử để logout hẳn
+//                    }
+//                }
+//            )
+//        }
     }
 }

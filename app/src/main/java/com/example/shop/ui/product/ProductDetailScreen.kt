@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.admin.viewmodel.AdminProductViewModel
 import com.example.shop.data.model.CartItem
+import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,12 +27,14 @@ fun ProductDetailScreen(
     onNavigateBack: () -> Unit,
     onAddToCart: () -> Unit,
     viewModel: AdminProductViewModel = hiltViewModel(),
-    cartViewModel: CartViewModel = hiltViewModel()
+    cartViewModel: CartViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val id = productId.toIntOrNull() ?: 0
 
     val product by viewModel.getProductById(id).collectAsState(initial = null)
 
+    val currentUser by authViewModel.currentUser.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,20 +109,25 @@ fun ProductDetailScreen(
                     // 2. Cập nhật logic xử lý khi nhấn nút "Thêm vào giỏ hàng"
                     Button(
                         onClick = {
-                            // Tạo đối tượng CartItem từ thông tin sản phẩm hiện tại
-                            val newItem = CartItem(
-                                productId = item.id.toString(),
-                                productName = item.name,
-                                price = item.price,
-                                quantity = 1, // Mặc định thêm 1 sản phẩm
-                                imageUrl = "" // Bạn có thể thêm item.imageUrl nếu có
-                            )
+                            val user = currentUser
+                            if (user != null){
+                                // Tạo đối tượng CartItem từ thông tin sản phẩm hiện tại
+                                val newItem = CartItem(
+                                    userId = user.id,
+                                    productId = item.id.toString(),
+                                    productName = item.name,
+                                    price = item.price,
+                                    quantity = 1, // Mặc định thêm 1 sản phẩm
+                                    imageUrl = "" // Bạn có thể thêm item.imageUrl nếu có
+                                )
+                                // Gọi ViewModel để thực hiện lưu vào Room Database
+                                cartViewModel.addToCart(newItem)
 
-                            // Gọi ViewModel để thực hiện lưu vào Room Database
-                            cartViewModel.addToCart(newItem)
-
-                            // Sau khi lưu xong, thực hiện chuyển sang màn hình Cart (như đã định nghĩa ở NavGraph)
-                            onAddToCart()
+                                // Sau khi lưu xong, thực hiện chuyển sang màn hình Cart (như đã định nghĩa ở NavGraph)
+                                onAddToCart()
+                            } else {
+                                println("Lỗi: Bạn cần đăng nhập để thêm vào giỏ hàng")
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
