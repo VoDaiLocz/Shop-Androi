@@ -16,20 +16,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.admin.viewmodel.AdminProductViewModel
+import com.example.shop.data.model.CartItem
+import com.example.shop.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
     productId: String,
-    onNavigateBack: () -> Unit, // Thêm hàm quay lại
+    onNavigateBack: () -> Unit,
     onAddToCart: () -> Unit,
-    // Sử dụng AdminProductViewModel hoặc ProductViewModel (miễn là có hàm getProductById)
-    viewModel: AdminProductViewModel = hiltViewModel()
+    viewModel: AdminProductViewModel = hiltViewModel(),
+    cartViewModel: CartViewModel = hiltViewModel()
 ) {
-    // Chuyển đổi ID từ String sang Int an toàn
     val id = productId.toIntOrNull() ?: 0
 
-    // Lấy dữ liệu sản phẩm từ ViewModel
     val product by viewModel.getProductById(id).collectAsState(initial = null)
 
     Scaffold(
@@ -51,7 +51,7 @@ fun ProductDetailScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Giả lập vùng hiển thị ảnh sản phẩm
+                // Hiển thị ảnh sản phẩm
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -61,8 +61,6 @@ fun ProductDetailScreen(
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Text("Ảnh sản phẩm", color = Color.Gray)
-                        // Nếu bạn dùng Coil để load ảnh:
-                        // AsyncImage(model = item.imageUrl, contentDescription = null)
                     }
                 }
 
@@ -80,7 +78,7 @@ fun ProductDetailScreen(
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
 
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                     Text(
                         text = "Số lượng còn lại: ${item.quantity}",
@@ -105,13 +103,29 @@ fun ProductDetailScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    // 2. Cập nhật logic xử lý khi nhấn nút "Thêm vào giỏ hàng"
                     Button(
-                        onClick = { onAddToCart() },
+                        onClick = {
+                            // Tạo đối tượng CartItem từ thông tin sản phẩm hiện tại
+                            val newItem = CartItem(
+                                productId = item.id.toString(),
+                                productName = item.name,
+                                price = item.price,
+                                quantity = 1, // Mặc định thêm 1 sản phẩm
+                                imageUrl = "" // Bạn có thể thêm item.imageUrl nếu có
+                            )
+
+                            // Gọi ViewModel để thực hiện lưu vào Room Database
+                            cartViewModel.addToCart(newItem)
+
+                            // Sau khi lưu xong, thực hiện chuyển sang màn hình Cart (như đã định nghĩa ở NavGraph)
+                            onAddToCart()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = MaterialTheme.shapes.medium,
-                        enabled = item.quantity > 0 // Vô hiệu hóa nếu hết hàng
+                        enabled = item.quantity > 0
                     ) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -120,7 +134,6 @@ fun ProductDetailScreen(
                 }
             }
         } ?: run {
-            // Hiển thị trạng thái đang tải hoặc lỗi
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (id == 0) Text("Sản phẩm không tồn tại") else CircularProgressIndicator()
             }

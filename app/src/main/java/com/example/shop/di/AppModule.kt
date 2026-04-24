@@ -1,9 +1,10 @@
-package com.example.shop.diimport
+package com.example.shop.di
 
 import android.content.Context
+import com.example.shop.data.local.dao.CartDao
 import com.example.shop.data.local.dao.ProductDao
 import com.example.shop.data.local.dao.UserDao
-import com.example.shop.data.local.dao.CategoryDao // 1. Thêm import này
+import com.example.shop.data.local.dao.CategoryDao
 import com.example.shop.data.local.db.AppDatabase
 import dagger.Module
 import dagger.Provides
@@ -38,5 +39,11 @@ object AppModule {
     @Provides
     fun provideCategoryDao(db: AppDatabase): CategoryDao {
         return db.categoryDao()
+    }
+
+    //======================CartItem====================================
+    @Provides
+    fun provideCartDao(db: AppDatabase): CartDao {
+        return db.cartDao()
     }
 }

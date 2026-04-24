@@ -160,13 +160,19 @@ fun MainNavGraph(
             val id = backStackEntry.arguments?.getString("id") ?: "0"
             ProductDetailScreen(
                 productId = id,
-                onAddToCart = { navController.navigate(Routes.CART) },
+                onAddToCart = {
+                    navController.navigate(Routes.CART)
+                },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
 
+
         composable(Routes.CART) {
-            CartScreen(onCheckout = { navController.navigate(Routes.CHECKOUT) })
+            CartScreen(
+                onNavigateBack = { navController.popBackStack() }, // THÊM DÒNG NÀY
+                onCheckout = { navController.navigate(Routes.CHECKOUT) }
+            )
         }
 
         composable(Routes.CHECKOUT) {
