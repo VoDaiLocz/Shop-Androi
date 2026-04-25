@@ -17,6 +17,8 @@ import com.example.shop.admin.ui.dashboard.DashboardScreen
 import com.example.shop.admin.ui.product.AddProductScreen
 import com.example.shop.admin.ui.product.ManageProductScreen
 import com.example.shop.admin.ui.product.UpdateProductScreen
+import com.example.shop.ui.address.AddAddressScreen
+import com.example.shop.ui.address.AddressScreen
 import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
@@ -26,6 +28,7 @@ import com.example.shop.ui.order.OrderScreen
 import com.example.shop.ui.product.ProductDetailScreen
 import com.example.shop.ui.product.ProductScreen
 import com.example.shop.ui.profile.ProfileScreen
+import com.example.shop.ui.profile.SettingScreen
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.ProductViewModel
 
@@ -175,7 +178,6 @@ fun MainNavGraph(
             )
         }
 
-        // Trong NavHost của bạn
         composable(Routes.CHECKOUT) {
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -193,17 +195,39 @@ fun MainNavGraph(
             )
         }
 
-        composable(Routes.PROFILE) { ProfileScreen() }
+        //========================PROFILE=====================
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onNavigateToOrders = { navController.navigate(Routes.ORDER) },
+                onNavigateToAddresses = { navController.navigate(Routes.ADDRESS_LIST) },
+                onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
 
-//        composable(Routes.PROFILE) {
-//            ProfileScreen(
-//                onNavigateToOrders = { navController.navigate(Routes.ORDER) },
-//                onLogout = {
-//                    navController.navigate(Routes.LOGIN) {
-//                        popUpTo(0) { inclusive = true } // Xóa sạch lịch sử để logout hẳn
-//                    }
-//                }
-//            )
-//        }
+        composable(Routes.SETTINGS) {
+            SettingScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+
+        // --- ADDRESS SCREENS ---
+        composable(Routes.ADDRESS_LIST) {
+            AddressScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddAddress = { navController.navigate(Routes.ADD_ADDRESS) }
+            )
+        }
+
+        composable(Routes.ADD_ADDRESS) {
+            AddAddressScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }

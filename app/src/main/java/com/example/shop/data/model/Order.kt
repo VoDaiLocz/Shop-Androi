@@ -2,8 +2,8 @@ package com.example.shop.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.sql.Timestamp
 
 @Entity(
     tableName = "orders",
@@ -14,7 +14,8 @@ import java.sql.Timestamp
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("userId")]
 )
 data class Order(
     @PrimaryKey(autoGenerate = true)

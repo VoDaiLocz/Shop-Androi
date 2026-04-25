@@ -1,12 +1,14 @@
 package com.example.shop.di
 
 import android.content.Context
+import com.example.shop.data.local.dao.AddressDao
 import com.example.shop.data.local.dao.CartDao
 import com.example.shop.data.local.dao.ProductDao
 import com.example.shop.data.local.dao.UserDao
 import com.example.shop.data.local.dao.CategoryDao
 import com.example.shop.data.local.dao.OrderDao
 import com.example.shop.data.local.db.AppDatabase
+import com.example.shop.data.repository.AddressRepository
 import com.example.shop.data.repository.AuthRepository
 import com.example.shop.data.repository.CartRepository
 import com.example.shop.data.repository.OrderRepository
@@ -57,6 +59,11 @@ object AppModule {
         return db.orderDao()
     }
 
+    @Provides
+    fun provideAddressDao(db: AppDatabase): AddressDao {
+        return db.addressDao()
+    }
+
     // --- REPOSITORIES (BẮT BUỘC PHẢI CÓ @SINGLETON Ở ĐÂY) ---
 
     @Provides
@@ -75,5 +82,11 @@ object AppModule {
     @Singleton
     fun provideOrderRepository(orderDao: OrderDao, cartDao: CartDao): OrderRepository {
         return OrderRepository(orderDao, cartDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddressRepository(addressDao: AddressDao): AddressRepository {
+        return AddressRepository(addressDao)
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.shop.data.local.dao.AddressDao
 import com.example.shop.data.local.dao.CartDao
 import com.example.shop.data.local.dao.CategoryDao
 import com.example.shop.data.local.dao.OrderDao
@@ -15,6 +16,7 @@ import com.example.shop.data.model.Order
 import com.example.shop.data.model.OrderItem
 import com.example.shop.data.model.Product
 import com.example.shop.data.model.User
+import com.example.shop.data.model.Address
 
 @Database(
     entities = [
@@ -23,9 +25,10 @@ import com.example.shop.data.model.User
         Category::class,
         CartItem::class,
         Order::class,
-        OrderItem::class
+        OrderItem::class,
+        Address::class
     ],
-    version = 6,
+    version =6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -35,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun cartDao(): CartDao
     abstract fun orderDao(): OrderDao
+    abstract fun addressDao(): AddressDao
 
 
     companion object {

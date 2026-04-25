@@ -3,6 +3,7 @@ package com.example.shop.data.model
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import androidx.room.Index
 
 @Entity(
     tableName = "order_items",
@@ -13,13 +14,14 @@ import androidx.room.PrimaryKey
             childColumns = ["orderId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["orderId"])]
 )
 data class OrderItem(
     @PrimaryKey(autoGenerate = true)
     val orderItemId: Int = 0,
-    val orderId: Int,
-    val productId: Int, // Đảm bảo kiểu dữ liệu khớp với bảng Product và CartItem
+    val orderId: Int, // Cột này tham chiếu đến id của bảng Order
+    val productId: Int,
     val productName: String,
     val quantity: Int,
     val price: Double
