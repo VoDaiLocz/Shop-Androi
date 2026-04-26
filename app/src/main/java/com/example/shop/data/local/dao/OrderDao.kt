@@ -29,4 +29,8 @@ interface OrderDao {
     @Transaction
     @Query("SELECT * FROM orders ORDER BY orderDate DESC")
     fun getALLOrders(): Flow<List<OrderWithItems>>
+
+    // Thêm vào trong interface OrderDao
+    @Query("UPDATE orders SET status = :status WHERE orderId = :orderId")
+    suspend fun updateOrderStatus(orderId: Int, status: String)
 }

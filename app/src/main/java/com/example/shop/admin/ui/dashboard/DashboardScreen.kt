@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 fun DashboardScreen(
     onManageProducts: () -> Unit,
     onManageCategories: () -> Unit,
+    onManageOrders: () -> Unit,
     onLogout: () -> Unit
 ) {
     Scaffold(
@@ -82,7 +83,7 @@ fun DashboardScreen(
                         title = "Đơn hàng",
                         icon = Icons.Default.ShoppingCart,
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        onClick = { /* Phát triển sau */ }
+                        onClick =  onManageOrders
                     )
                 }
             }

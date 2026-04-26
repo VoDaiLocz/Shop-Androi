@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.example.shop.admin.ui.category.ManageCategoryScreen
 import com.example.shop.admin.ui.category.UpdateCategoryScreen
 import com.example.shop.admin.ui.dashboard.DashboardScreen
+import com.example.shop.admin.ui.order.ManageOrderScreen
 import com.example.shop.admin.ui.product.AddProductScreen
 import com.example.shop.admin.ui.product.ManageProductScreen
 import com.example.shop.admin.ui.product.UpdateProductScreen
@@ -78,6 +79,7 @@ fun MainNavGraph(
             DashboardScreen(
                 onManageProducts = { navController.navigate(Routes.ADMIN_MANAGE_PRODUCT) },
                 onManageCategories = { navController.navigate(Routes.ADMIN_MANAGE_CATEGORY) },
+                onManageOrders = { navController.navigate(Routes.ADMIN_MANAGE_ORDER) },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.ADMIN_DASHBOARD) { inclusive = true }
@@ -135,6 +137,13 @@ fun MainNavGraph(
             val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 0
             UpdateCategoryScreen(
                 categoryId = categoryId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        //========================ADMIN ORDER=====================
+        composable(Routes.ADMIN_MANAGE_ORDER) {
+            ManageOrderScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
