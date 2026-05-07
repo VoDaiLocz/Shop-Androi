@@ -16,10 +16,6 @@ class AdminOrderViewModel @Inject constructor(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    /**
-     * Lấy toàn bộ danh sách đơn hàng (kèm sản phẩm chi tiết) từ database.
-     * Sử dụng stateIn để biến Flow từ Room thành StateFlow giúp UI dễ dàng quan sát.
-     */
     val allOrders: StateFlow<List<OrderWithItems>> = orderRepository.getALLOrders()
         .stateIn(
             scope = viewModelScope,
@@ -27,9 +23,6 @@ class AdminOrderViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    /**
-     * Hàm cập nhật trạng thái đơn hàng (Ví dụ: PENDING -> SHIPPING -> COMPLETED)
-     */
     fun updateOrderStatus(orderId: Int, newStatus: String) {
         viewModelScope.launch {
             orderRepository.updateOrderStatus(orderId, newStatus)

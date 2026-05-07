@@ -82,7 +82,8 @@ public class ProductsController : ControllerBase
             Price = request.Price,
             Description = request.Description.Trim(),
             Quantity = request.Quantity,
-            CategoryId = request.CategoryId
+            CategoryId = request.CategoryId,
+            ImageUrl = NormalizeImageUrl(request.ImageUrl)
         };
 
         _db.Products.Add(product);
@@ -113,6 +114,7 @@ public class ProductsController : ControllerBase
         product.Description = request.Description.Trim();
         product.Quantity = request.Quantity;
         product.CategoryId = request.CategoryId;
+        product.ImageUrl = NormalizeImageUrl(request.ImageUrl);
         product.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
@@ -234,6 +236,11 @@ public class ProductsController : ControllerBase
             product.Quantity,
             product.CategoryId,
             product.Category.Name);
+    }
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        return string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
     }
 
     private async Task<ProductResponse> GetProductResponse(int id)

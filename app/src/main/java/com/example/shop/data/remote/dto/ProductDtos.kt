@@ -18,7 +18,8 @@ data class CreateProductRequest(
     val price: Double,
     val description: String,
     val quantity: Int,
-    val categoryId: Int
+    val categoryId: Int,
+    val imageUrl: String? = null
 )
 
 data class UpdateProductRequest(
@@ -26,7 +27,8 @@ data class UpdateProductRequest(
     val price: Double,
     val description: String,
     val quantity: Int,
-    val categoryId: Int
+    val categoryId: Int,
+    val imageUrl: String? = null
 )
 
 fun ProductResponse.toProduct(): Product {

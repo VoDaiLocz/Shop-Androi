@@ -120,7 +120,7 @@ fun ProductDetailScreen(
                                     quantity = 1, // Mặc định thêm 1 sản phẩm
                                     imageUrl = "" // Bạn có thể thêm item.imageUrl nếu có
                                 )
-                                // Gọi ViewModel để thực hiện lưu vào Room Database
+                                // Gọi ViewModel để thêm sản phẩm vào cart qua backend.
                                 cartViewModel.addToCart(newItem)
 
                                 // Sau khi lưu xong, thực hiện chuyển sang màn hình Cart (như đã định nghĩa ở NavGraph)

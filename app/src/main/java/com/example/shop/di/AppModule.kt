@@ -2,11 +2,10 @@ package com.example.shop.di
 
 import android.content.Context
 import com.example.shop.data.local.dao.AddressDao
-import com.example.shop.data.local.dao.CartDao
-import com.example.shop.data.local.dao.CategoryDao
 import com.example.shop.data.local.db.AppDatabase
 import com.example.shop.data.remote.api.AuthApi
 import com.example.shop.data.remote.api.CartApi
+import com.example.shop.data.remote.api.CategoryApi
 import com.example.shop.data.remote.api.OrderApi
 import com.example.shop.data.remote.api.ProductApi
 import com.example.shop.data.repository.AddressRepository
@@ -71,20 +70,14 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCategoryApi(retrofit: Retrofit): CategoryApi {
+        return retrofit.create(CategoryApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideOrderApi(retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
-    }
-
-    //======================CATEGORY============================
-    @Provides
-    fun provideCategoryDao(db: AppDatabase): CategoryDao {
-        return db.categoryDao()
-    }
-
-    //======================CartItem====================================
-    @Provides
-    fun provideCartDao(db: AppDatabase): CartDao {
-        return db.cartDao()
     }
 
     @Provides

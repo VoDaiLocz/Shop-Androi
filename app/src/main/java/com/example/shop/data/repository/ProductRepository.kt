@@ -44,7 +44,8 @@ class ProductRepository @Inject constructor(
                     price = product.price,
                     description = product.description,
                     quantity = product.quantity,
-                    categoryId = product.categoryId
+                    categoryId = product.categoryId,
+                    imageUrl = product.imageUrl
                 )
             )
         }
@@ -61,7 +62,8 @@ class ProductRepository @Inject constructor(
                     price = product.price,
                     description = product.description,
                     quantity = product.quantity,
-                    categoryId = product.categoryId
+                    categoryId = product.categoryId,
+                    imageUrl = product.imageUrl
                 )
             )
         }
