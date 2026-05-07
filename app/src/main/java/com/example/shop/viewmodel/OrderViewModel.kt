@@ -11,7 +11,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,8 +31,10 @@ class OrderViewModel @Inject constructor(
     val cartItems: StateFlow<List<CartItem>> = authRepository.currentUser
         .flatMapLatest { user ->
             if (user != null) {
-                // Chỉ lấy các món hàng thuộc về ID của User này
-                cartRepository.getItemsForUser(user.id)
+                flow {
+                    cartRepository.refreshCart()
+                    emitAll(cartRepository.getItemsForUser(user.id))
+                }
             } else {
                 flowOf(emptyList())
             }

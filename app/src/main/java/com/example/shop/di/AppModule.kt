@@ -7,9 +7,9 @@ import com.example.shop.data.local.dao.CategoryDao
 import com.example.shop.data.local.dao.OrderDao
 import com.example.shop.data.local.db.AppDatabase
 import com.example.shop.data.remote.api.AuthApi
+import com.example.shop.data.remote.api.CartApi
 import com.example.shop.data.remote.api.ProductApi
 import com.example.shop.data.repository.AddressRepository
-import com.example.shop.data.repository.CartRepository
 import com.example.shop.data.repository.OrderRepository
 import com.example.shop.utils.Constants
 import dagger.Module
@@ -64,6 +64,12 @@ object AppModule {
         return retrofit.create(ProductApi::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideCartApi(retrofit: Retrofit): CartApi {
+        return retrofit.create(CartApi::class.java)
+    }
+
     //======================CATEGORY============================
     @Provides
     fun provideCategoryDao(db: AppDatabase): CategoryDao {
@@ -88,12 +94,6 @@ object AppModule {
     }
 
     // --- REPOSITORIES---
-    @Provides
-    @Singleton
-    fun provideCartRepository(cartDao: CartDao): CartRepository {
-        return CartRepository(cartDao)
-    }
-
     @Provides
     @Singleton
     fun provideOrderRepository(orderDao: OrderDao, cartDao: CartDao): OrderRepository {

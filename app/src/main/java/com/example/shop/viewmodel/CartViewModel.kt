@@ -22,8 +22,10 @@ class CartViewModel @Inject constructor(
     val cartItems: StateFlow<List<CartItem>> = authRepository.currentUser
         .flatMapLatest { user ->
             if (user != null) {
-                // Chỉ lấy món hàng của User có ID này
-                repository.getItemsForUser(user.id)
+                flow {
+                    repository.refreshCart()
+                    emitAll(repository.getItemsForUser(user.id))
+                }
             } else {
                 flowOf(emptyList())
             }
@@ -41,7 +43,6 @@ class CartViewModel @Inject constructor(
     // Thêm vào giỏ hàng
     fun addToCart(item: CartItem) {
         viewModelScope.launch {
-            // Lấy user hiện tại để đảm bảo item được gán đúng userId
             val currentUser = authRepository.currentUser.first()
             if (currentUser != null) {
                 repository.addToCart(item.copy(userId = currentUser.id))
