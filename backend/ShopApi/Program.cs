@@ -15,6 +15,12 @@ builder.Services.AddDbContext<ShopDbContext>(options =>
 
 var app = builder.Build();
 
+if (args.Contains("--seed-admin", StringComparer.OrdinalIgnoreCase))
+{
+    await DatabaseSeeder.SeedAdminAsync(app.Services);
+    return;
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
