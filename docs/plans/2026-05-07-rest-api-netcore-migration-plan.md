@@ -900,11 +900,11 @@ Hoàn thành khi:
 - Có admin mặc định.
 - Không có product/category mẫu.
 
-Thông tin admin mặc định cần user duyệt trước khi tạo:
+Thông tin admin mặc định:
 
 ```text
 Email: admin@shop.local
-Password: Admin@123
+Password: truyền tạm qua biến môi trường AdminSeed__Password khi chạy seed, không commit vào source
 Role: ADMIN
 ```
 
