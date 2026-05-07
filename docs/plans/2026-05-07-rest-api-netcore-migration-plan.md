@@ -660,7 +660,106 @@ Rủi ro đã chốt:
 - Vì vậy checkpoint Android có thể sửa nhiều file cùng lúc.
 - Trước khi làm checkpoint Android, phải liệt kê rõ toàn bộ file sẽ sửa.
 
+## 9.1 Mapping Android Model Với Backend Entity/DTO
+
+Android hiện có nhiều model hơn phạm vi backend giai đoạn đầu. Không ép backend entity phải giống 100% Android Room model. Cách làm đúng là:
+
+```text
+Backend entity
+  -> phục vụ database và nghiệp vụ server
+
+Backend DTO response
+  -> phục vụ JSON trả cho Android
+
+Android API model/DTO
+  -> parse JSON từ backend
+```
+
+Mapping đã chốt:
+
+| Android model | Backend entity | Backend DTO/API giai đoạn đầu | Trạng thái |
+|---|---|---|---|
+| `User` | `User` | `UserResponse`, `LoginResponse` | Làm ngay |
+| `Category` | `Category` | `CategoryResponse` | Làm ngay |
+| `Product` | `Product` | `ProductResponse` | Làm ngay |
+| `CartItem` | `CartItem` + join `Product` | `CartItemResponse` có product info | Làm ngay |
+| `Order` | `Order` | `OrderResponse` | Làm ngay |
+| `OrderItem` | `OrderItem` | `OrderItemResponse` | Làm ngay |
+| `OrderWithItems` | Không tạo entity riêng | `OrderResponse` có `items` | Làm ngay bằng DTO |
+| `Address` | Chưa tạo entity | Không làm API address book | Phase 2 |
+| `Payment` | Không tạo entity riêng | `paymentMethod = "COD"` trong order | Giai đoạn đầu chỉ COD |
+| `Review` | Chưa tạo entity | Chưa làm Review API | Phase 2 |
+| `Notification` | Chưa tạo entity | Chưa làm Notification API | Phase 2 |
+
+Những điểm lệch cần xử lý khi nối Android:
+
+| Vấn đề | Android hiện tại | Backend hiện tại | Hướng xử lý |
+|---|---|---|---|
+| Password user | `password` trong `User` | `PasswordHash` trong entity | API không trả password/passwordHash; Android dùng request DTO riêng |
+| Product price | `Double` | `decimal` | JSON number vẫn parse được; ưu tiên DTO rõ ràng |
+| Category image | `imageUrl: String` | `string? ImageUrl` | Backend DTO trả `imageUrl = ""` nếu null, hoặc Android đổi nullable |
+| Cart product id | `productId: String` | `ProductId: int` | Khi nối API, đổi Android API model sang `Int` |
+| Cart product info | Android lưu `productName`, `price`, `imageUrl` | Backend DB không lưu trong cart | `CartItemResponse` join từ product và trả đủ info |
+| Order id | `orderId` | `Id` | `OrderResponse` trả field `orderId` để Android ít sửa |
+| Order date | `Long` milliseconds | `DateTime` | `OrderResponse` trả `orderDate` dạng milliseconds |
+| Order item id | `orderItemId` | `Id` | `OrderItemResponse` trả field `orderItemId` |
+| Order item image | Android hiện chưa có | Backend có `ImageUrl` snapshot | Có thể thêm `imageUrl` vào Android khi làm order history |
+
+DTO response dự kiến để Android dễ dùng:
+
+```json
+{
+  "orderId": 1,
+  "userId": 2,
+  "orderDate": 1715000000000,
+  "totalPrice": 2500000,
+  "status": "Pending",
+  "address": "123 Nguyen Trai",
+  "phoneNumber": "0909123456",
+  "items": [
+    {
+      "orderItemId": 1,
+      "orderId": 1,
+      "productId": 10,
+      "productName": "Sofa",
+      "quantity": 1,
+      "price": 2500000,
+      "imageUrl": "/uploads/products/sofa.jpg"
+    }
+  ]
+}
+```
+
+Phạm vi phase 2:
+
+- `Address API`: quản lý nhiều địa chỉ, địa chỉ mặc định.
+- `Review API`: đánh giá sản phẩm.
+- `Notification API`: thông báo đơn hàng.
+- `Payment API`: nếu vượt ra ngoài COD.
+
 ## 10. Checkpoint Thực Thi
+
+### Checkpoint 3.5: Chốt Mapping Android Model Với Backend DTO
+
+Mục tiêu: đảm bảo Android model, backend entity và API DTO không bị hiểu nhầm là phải giống nhau 100%.
+
+Hành động:
+
+- Cập nhật tài liệu mapping Android model với backend entity/DTO.
+- Ghi rõ model nào làm ngay và model nào để phase 2.
+- Ghi rõ field lệch cần xử lý khi nối Retrofit.
+
+File thay đổi:
+
+```text
+docs/plans/2026-05-07-rest-api-netcore-migration-plan.md
+```
+
+Hoàn thành khi:
+
+- Tài liệu có bảng mapping model.
+- Tài liệu có danh sách mismatch và hướng xử lý.
+- Không sửa code backend/Android.
 
 ### Checkpoint 0: Kiểm Tra Môi Trường
 
@@ -1095,4 +1194,3 @@ Không có
 ```
 
 Chỉ khi user duyệt checkpoint 0, Codex mới chạy lệnh kiểm tra.
-
