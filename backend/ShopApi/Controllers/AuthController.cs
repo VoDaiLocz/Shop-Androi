@@ -29,6 +29,12 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserResponse>> Register(RegisterRequest request)
     {
+        var username = request.Username.Trim();
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new { message = "Username is required." });
+        }
+
         var email = request.Email.Trim().ToLowerInvariant();
         var emailExists = await _db.Users.AnyAsync(user => user.Email == email);
         if (emailExists)
@@ -38,7 +44,7 @@ public class AuthController : ControllerBase
 
         var user = new User
         {
-            Username = request.Username.Trim(),
+            Username = username,
             Email = email,
             PasswordHash = string.Empty,
             Role = "USER"

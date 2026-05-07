@@ -49,9 +49,15 @@ public class CategoriesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CategoryResponse>> Create(CreateCategoryRequest request)
     {
+        var name = request.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest(new { message = "Category name is required." });
+        }
+
         var category = new Category
         {
-            Name = request.Name.Trim(),
+            Name = name,
             ImageUrl = NormalizeImageUrl(request.ImageUrl)
         };
 
@@ -65,13 +71,19 @@ public class CategoriesController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<CategoryResponse>> Update(int id, UpdateCategoryRequest request)
     {
+        var name = request.Name.Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest(new { message = "Category name is required." });
+        }
+
         var category = await _db.Categories.FindAsync(id);
         if (category is null)
         {
             return NotFound(new { message = "Category not found." });
         }
 
-        category.Name = request.Name.Trim();
+        category.Name = name;
         category.ImageUrl = NormalizeImageUrl(request.ImageUrl);
 
         await _db.SaveChangesAsync();
