@@ -32,7 +32,7 @@ fun BoardingScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 🔹 Image (fake banner)
+        // Image (fake banner)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -43,7 +43,7 @@ fun BoardingScreen(
             Text("Welcome Image")
         }
 
-        // 🔹 Text intro
+        // Text intro
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
             Text(
@@ -59,7 +59,7 @@ fun BoardingScreen(
             )
         }
 
-        // 🔹 Button
+        // Button
         Button(
             onClick = onFinish,
             modifier = Modifier.fillMaxWidth()

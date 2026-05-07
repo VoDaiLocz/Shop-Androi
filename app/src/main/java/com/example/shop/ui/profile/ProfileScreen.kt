@@ -27,7 +27,7 @@ import com.example.shop.viewmodel.AuthViewModel
 fun ProfileScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToAddresses: () -> Unit,
-    onNavigateToSettings: () -> Unit, // 1. Thêm callback điều hướng tới Settings
+    onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -90,7 +90,6 @@ fun ProfileScreen(
 
             // --- CÁC LỰA CHỌN ---
 
-            // 1. Nút Lịch sử đơn hàng
             OutlinedButton(
                 onClick = onNavigateToOrders,
                 modifier = Modifier.fillMaxWidth(),
@@ -103,7 +102,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Nút Địa chỉ
             OutlinedButton(
                 onClick = onNavigateToAddresses,
                 modifier = Modifier.fillMaxWidth(),
@@ -116,7 +114,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 3. Nút Cài đặt hệ thống (MỚI THÊM)
             OutlinedButton(
                 onClick = onNavigateToSettings,
                 modifier = Modifier.fillMaxWidth(),
@@ -131,7 +128,6 @@ fun ProfileScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Nút Đăng xuất
             Button(
                 onClick = {
                     authViewModel.logout()

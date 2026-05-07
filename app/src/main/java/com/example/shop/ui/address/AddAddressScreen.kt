@@ -50,7 +50,6 @@ fun AddAddressScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Ô nhập tên gợi nhớ
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -59,7 +58,6 @@ fun AddAddressScreen(
                 leadingIcon = { Icon(Icons.Default.Home, null) }
             )
 
-            // Ô nhập số điện thoại
             OutlinedTextField(
                 value = phone,
                 onValueChange = { phone = it },
@@ -68,7 +66,6 @@ fun AddAddressScreen(
                 leadingIcon = { Icon(Icons.Default.Phone, null) }
             )
 
-            // Ô nhập tỉnh/thành phố
             OutlinedTextField(
                 value = city,
                 onValueChange = { city = it },
@@ -77,7 +74,6 @@ fun AddAddressScreen(
                 leadingIcon = { Icon(Icons.Default.LocationCity, null) }
             )
 
-            // Ô nhập địa chỉ chi tiết
             OutlinedTextField(
                 value = detail,
                 onValueChange = { detail = it },
@@ -89,7 +85,6 @@ fun AddAddressScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Nút Lưu
             Button(
                 onClick = {
                     if (name.isNotBlank() && phone.isNotBlank() && detail.isNotBlank()) {
@@ -99,7 +94,7 @@ fun AddAddressScreen(
                             detail = detail,
                             city = city
                         )
-                        onNavigateBack() // Quay lại danh sách sau khi lưu
+                        onNavigateBack()
                     }
                 },
                 modifier = Modifier

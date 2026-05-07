@@ -18,7 +18,7 @@ import com.example.shop.viewmodel.ProductViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
-    categoryId: Int, // THÊM: Nhận ID danh mục từ HomeScreen truyền sang
+    categoryId: Int,
     viewModel: ProductViewModel,
     onNavigateBack: () -> Unit,
     onClickItem: (Int) -> Unit

@@ -59,7 +59,6 @@ dependencies {
 
     implementation("com.google.dagger:hilt-android:2.51.1")
     ksp("com.google.dagger:hilt-compiler:2.51.1")
-    // 3. Hilt cho Navigation Compose (Cần thiết vì bạn đang dùng navigation-compose 2.7.7)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     //Icons

@@ -10,13 +10,12 @@ import javax.inject.Singleton
 class CartRepository @Inject constructor(
     private val cartDao: CartDao
 ) {
-    // 1. Thêm hàm này để ViewModel gọi (Sửa lỗi Unresolved reference 'getItemsForUser')
+    //Thêm hàm này để ViewModel gọi (Sửa lỗi Unresolved reference 'getItemsForUser')
     fun getItemsForUser(userId: Int): Flow<List<CartItem>> {
         return cartDao.getAllCartItems(userId)
     }
 
     suspend fun addToCart(cartItem: CartItem) {
-        // 2. Sửa lệnh check: Phải tìm theo cả ProductId và UserId
         val existingItem = cartDao.getItemByProductId(cartItem.productId, cartItem.userId)
 
         if (existingItem != null) {

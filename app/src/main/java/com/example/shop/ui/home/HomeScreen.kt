@@ -25,15 +25,13 @@ import com.example.shop.viewmodel.UserCategoryViewModel
 @Composable
 fun HomeScreen(
     onOpenProduct: (String) -> Unit,
-    onOpenCategory: (Int) -> Unit, // THÊM THAM SỐ NÀY
+    onOpenCategory: (Int) -> Unit,
     onOpenCart: () -> Unit,
     productViewModel: ProductViewModel = hiltViewModel(),
     categoryViewModel: UserCategoryViewModel = hiltViewModel()
 ) {
     val products by productViewModel.products.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()
-
-    // BỎ logic selectedCategoryId và filteredProducts vì chúng ta sẽ chuyển trang
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(

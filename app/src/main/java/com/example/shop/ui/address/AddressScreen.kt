@@ -28,7 +28,6 @@ fun AddressScreen(
     onNavigateToAddAddress: () -> Unit,
     viewModel: AddressViewModel = hiltViewModel()
 ) {
-    // 1. Lấy danh sách địa chỉ thực tế từ ViewModel
     val addresses by viewModel.userAddresses.collectAsState()
 
     Scaffold(
@@ -66,7 +65,6 @@ fun AddressScreen(
                 }
             }
         } else {
-            // 2. Danh sách địa chỉ
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()

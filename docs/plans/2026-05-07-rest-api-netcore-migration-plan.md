@@ -1,0 +1,1098 @@
+# Kế Hoạch Thực Thi: Chuyển Android Shop Từ Room Sang ASP.NET Core REST API
+
+Ngày tạo: 2026-05-07  
+Trạng thái: Đã chốt hướng triển khai, chờ thực thi theo checkpoint  
+Phạm vi: Backend ASP.NET Core + MySQL Code First + nối Android bằng Retrofit
+
+## 1. Tóm Tắt Quyết Định Đã Chốt
+
+| Nhóm quyết định | Kết luận |
+|---|---|
+| Phạm vi backend | Làm đầy đủ Auth + Product + Category + Cart + Order |
+| Công nghệ backend | ASP.NET Core Web API |
+| Database | MySQL localhost |
+| Database approach | Entity Framework Core Code First |
+| Vị trí backend | `backend/ShopApi` |
+| Authentication | JWT cơ bản |
+| Admin account | Seed sẵn admin mặc định |
+| Product/category data | Không seed dữ liệu mẫu, database ban đầu trống |
+| Admin API | Làm ngay API admin cho product/category |
+| Ảnh sản phẩm | Upload ảnh lên backend |
+| Upload ảnh | Mức đơn giản: kiểm tra định dạng, dung lượng, lưu vào `wwwroot/uploads/products` |
+| Tính tiền order | Backend tự tính theo giá product trong database |
+| Trạng thái đơn hàng | `Pending`, `Shipping`, `Delivered`, `Cancelled` |
+| Địa chỉ giao hàng | Checkout gửi address text trực tiếp, chưa làm address book |
+| Payment | COD only |
+| Tồn kho | Có quản lý tồn kho đơn giản |
+| Vượt tồn kho | Backend từ chối đặt hàng |
+| API response | Trả object trực tiếp, dùng HTTP status code chuẩn |
+| Nối Android | Nối từng phần |
+| Room | Xóa khi bắt đầu nối API |
+| Emulator gọi backend | Dùng `http://10.0.2.2:<port>` |
+| Dev CORS/HTTP | Cho phép dev origin rộng, dùng HTTP local |
+
+## 2. Mục Tiêu
+
+Mục tiêu là thay nguồn dữ liệu chính của Android app từ Room local sang backend REST API.
+
+Luồng hiện tại:
+
+```text
+Android UI
+  -> ViewModel
+  -> Repository
+  -> Room DAO
+  -> SQLite trong điện thoại
+```
+
+Luồng sau khi chuyển:
+
+```text
+Android UI
+  -> ViewModel
+  -> Repository
+  -> Retrofit API
+  -> ASP.NET Core Web API
+  -> MySQL database
+```
+
+Backend sẽ chịu trách nhiệm:
+
+- Đăng ký và đăng nhập.
+- Phân quyền user/admin bằng JWT.
+- Quản lý category.
+- Quản lý product.
+- Upload ảnh sản phẩm.
+- Quản lý cart theo user đăng nhập.
+- Tạo order từ cart.
+- Tính tổng tiền ở server.
+- Trừ tồn kho khi đặt hàng.
+- Quản lý trạng thái đơn hàng.
+
+Android sẽ chịu trách nhiệm:
+
+- Gọi API bằng Retrofit.
+- Lưu JWT token.
+- Gửi token qua header `Authorization`.
+- Hiển thị loading/error/success.
+- Không tự xử lý database chính bằng Room.
+
+## 3. Nguyên Tắc Triển Khai
+
+Triển khai theo checkpoint nhỏ, có review trước khi làm.
+
+Quy trình bắt buộc cho mỗi checkpoint:
+
+```text
+1. Codex nêu checkpoint sắp làm.
+2. Codex liệt kê hành động cụ thể.
+3. Codex liệt kê file/thư mục dự kiến thay đổi.
+4. User review và duyệt.
+5. Codex mới thực hiện.
+6. Codex báo kết quả.
+7. Codex nêu cách kiểm tra.
+8. User review kết quả trước khi sang checkpoint tiếp theo.
+```
+
+Không được tự ý:
+
+- Nhảy nhiều checkpoint cùng lúc.
+- Tạo backend trước khi user duyệt checkpoint.
+- Sửa Android trước khi backend API tương ứng chạy được.
+- Xóa Room trước checkpoint nối Android.
+- Đổi API contract đã chốt mà không báo.
+- Chạy lệnh destructive.
+
+## 4. Phạm Vi Không Làm Ở Giai Đoạn Đầu
+
+Không làm các phần sau để giữ code gọn và dễ hiểu:
+
+- Clean Architecture nhiều project.
+- CQRS.
+- MediatR.
+- Repository pattern riêng bên backend.
+- Unit of Work tự viết.
+- Docker.
+- Refresh token.
+- Payment online thật.
+- Address book.
+- Offline cache.
+- Upload ảnh nâng cao.
+- Test automation phức tạp.
+
+Lý do: mục tiêu hiện tại là backend chạy được, Android nối được, logic rõ ràng, dễ review.
+
+## 5. Kiến Trúc Backend Dự Kiến
+
+Backend đặt tại:
+
+```text
+backend/ShopApi
+```
+
+Cấu trúc thư mục:
+
+```text
+backend/ShopApi/
+  Controllers/
+    AuthController.cs
+    CategoriesController.cs
+    ProductsController.cs
+    CartController.cs
+    OrdersController.cs
+
+  Data/
+    ShopDbContext.cs
+
+  Dtos/
+    AuthDtos.cs
+    CategoryDtos.cs
+    ProductDtos.cs
+    CartDtos.cs
+    OrderDtos.cs
+
+  Models/
+    User.cs
+    Category.cs
+    Product.cs
+    CartItem.cs
+    Order.cs
+    OrderItem.cs
+
+  wwwroot/
+    uploads/
+      products/
+
+  Program.cs
+  appsettings.json
+```
+
+Thiết kế backend ở giai đoạn đầu:
+
+```text
+Controller
+  -> ShopDbContext
+  -> MySQL
+```
+
+Không tách service/repository riêng nếu chưa cần. Với quy mô bài này, controller gọi DbContext trực tiếp giúp ít file, dễ đọc, dễ debug.
+
+## 6. Database Design
+
+### 6.1 Bảng Users
+
+Mục đích: lưu tài khoản user/admin.
+
+Field dự kiến:
+
+```text
+Id
+Username
+Email
+PasswordHash
+Role
+CreatedAt
+```
+
+Quy tắc:
+
+- `Email` unique.
+- Không lưu password plain text.
+- Role ban đầu gồm `USER` và `ADMIN`.
+- Admin mặc định được seed khi tạo database.
+
+### 6.2 Bảng Categories
+
+Mục đích: phân loại sản phẩm.
+
+Field dự kiến:
+
+```text
+Id
+Name
+ImageUrl
+CreatedAt
+```
+
+Quy tắc:
+
+- Database ban đầu không seed category mẫu.
+- Admin sẽ thêm category qua API.
+
+### 6.3 Bảng Products
+
+Mục đích: lưu sản phẩm.
+
+Field dự kiến:
+
+```text
+Id
+Name
+Price
+Description
+ImageUrl
+Quantity
+CategoryId
+CreatedAt
+UpdatedAt
+```
+
+Quy tắc:
+
+- `Price` phải lớn hơn hoặc bằng 0.
+- `Quantity` phải lớn hơn hoặc bằng 0.
+- `CategoryId` phải tồn tại.
+- `ImageUrl` được cập nhật sau khi upload ảnh.
+
+### 6.4 Bảng CartItems
+
+Mục đích: lưu giỏ hàng hiện tại của user.
+
+Field dự kiến:
+
+```text
+Id
+UserId
+ProductId
+Quantity
+CreatedAt
+UpdatedAt
+```
+
+Quy tắc:
+
+- Cart item thuộc user đăng nhập.
+- Không tin `UserId` từ Android gửi lên.
+- Nếu product đã có trong cart thì tăng quantity.
+- Không lưu `ProductName`, `Price`, `ImageUrl` trong cart để tránh lệch dữ liệu.
+
+### 6.5 Bảng Orders
+
+Mục đích: lưu đơn hàng.
+
+Field dự kiến:
+
+```text
+Id
+UserId
+OrderDate
+TotalPrice
+Status
+Address
+PhoneNumber
+PaymentMethod
+CreatedAt
+UpdatedAt
+```
+
+Quy tắc:
+
+- `PaymentMethod` mặc định là `COD`.
+- `Status` chỉ nhận một trong các giá trị: `Pending`, `Shipping`, `Delivered`, `Cancelled`.
+- `TotalPrice` do backend tự tính.
+- Android không được quyết định tổng tiền.
+
+### 6.6 Bảng OrderItems
+
+Mục đích: lưu snapshot sản phẩm tại thời điểm đặt hàng.
+
+Field dự kiến:
+
+```text
+Id
+OrderId
+ProductId
+ProductName
+Quantity
+Price
+ImageUrl
+```
+
+Quy tắc:
+
+- Lưu `ProductName`, `Price`, `ImageUrl` để lịch sử đơn hàng không bị thay đổi khi admin sửa product sau này.
+- Khi tạo order, backend trừ tồn kho product.
+- Nếu tồn kho không đủ, backend từ chối tạo order.
+
+## 7. API Contract
+
+API trả object trực tiếp, không bọc envelope.
+
+Ví dụ thành công:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Sofa",
+    "price": 2500000
+  }
+]
+```
+
+Ví dụ lỗi:
+
+```http
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+```
+
+Body lỗi có thể đơn giản:
+
+```json
+{
+  "message": "Email already exists"
+}
+```
+
+### 7.1 Auth API
+
+```text
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+Register request:
+
+```json
+{
+  "username": "Nguyen Van A",
+  "email": "user@gmail.com",
+  "password": "123456"
+}
+```
+
+Login request:
+
+```json
+{
+  "email": "user@gmail.com",
+  "password": "123456"
+}
+```
+
+Login response:
+
+```json
+{
+  "token": "jwt-token",
+  "user": {
+    "id": 1,
+    "username": "Nguyen Van A",
+    "email": "user@gmail.com",
+    "role": "USER"
+  }
+}
+```
+
+### 7.2 Category API
+
+Public:
+
+```text
+GET /api/categories
+GET /api/categories/{id}
+```
+
+Admin:
+
+```text
+POST   /api/categories
+PUT    /api/categories/{id}
+DELETE /api/categories/{id}
+```
+
+Create category request:
+
+```json
+{
+  "name": "Sofa",
+  "imageUrl": ""
+}
+```
+
+### 7.3 Product API
+
+Public:
+
+```text
+GET /api/products
+GET /api/products/{id}
+GET /api/products?categoryId=1
+```
+
+Admin:
+
+```text
+POST   /api/products
+PUT    /api/products/{id}
+DELETE /api/products/{id}
+POST   /api/products/{id}/image
+```
+
+Create product request:
+
+```json
+{
+  "name": "Sofa cao cấp",
+  "price": 2500000,
+  "description": "Sofa phòng khách",
+  "quantity": 10,
+  "categoryId": 1
+}
+```
+
+Upload image:
+
+```text
+POST /api/products/{id}/image
+Content-Type: multipart/form-data
+Field: file
+```
+
+Upload ảnh mức đơn giản:
+
+- Chỉ nhận `.jpg`, `.jpeg`, `.png`, `.webp`.
+- Giới hạn dung lượng.
+- Lưu vào `wwwroot/uploads/products`.
+- Cập nhật `Product.ImageUrl`.
+
+### 7.4 Cart API
+
+Tất cả API cart yêu cầu JWT.
+
+```text
+GET    /api/cart
+POST   /api/cart/items
+PUT    /api/cart/items/{id}
+DELETE /api/cart/items/{id}
+DELETE /api/cart
+```
+
+Add cart item request:
+
+```json
+{
+  "productId": 1,
+  "quantity": 2
+}
+```
+
+Update quantity request:
+
+```json
+{
+  "quantity": 3
+}
+```
+
+Quy tắc:
+
+- Backend lấy `UserId` từ token.
+- Backend kiểm tra product tồn tại.
+- Backend kiểm tra quantity hợp lệ.
+- Nếu item đã có thì cộng quantity.
+
+### 7.5 Order API
+
+Tạo order yêu cầu JWT.
+
+```text
+POST /api/orders
+GET  /api/orders/my
+GET  /api/orders
+PUT  /api/orders/{id}/status
+```
+
+Create order request:
+
+```json
+{
+  "address": "123 Nguyen Trai, Quan 1",
+  "phoneNumber": "0909123456"
+}
+```
+
+Update status request:
+
+```json
+{
+  "status": "Shipping"
+}
+```
+
+Quy tắc:
+
+- `POST /api/orders` tạo order từ cart hiện tại.
+- Backend tự tính `TotalPrice`.
+- Backend trừ tồn kho.
+- Backend xóa cart sau khi tạo order thành công.
+- Nếu cart rỗng, trả `400 Bad Request`.
+- Nếu tồn kho không đủ, trả `409 Conflict`.
+- `GET /api/orders` chỉ admin được gọi.
+- `PUT /api/orders/{id}/status` chỉ admin được gọi.
+
+## 8. Luồng Nghiệp Vụ Chính
+
+### 8.1 Đăng ký
+
+```text
+Android nhập username/email/password
+  -> POST /api/auth/register
+  -> Backend kiểm tra email
+  -> Backend hash password
+  -> Backend lưu user role USER
+  -> Backend trả user không có password
+```
+
+### 8.2 Đăng nhập
+
+```text
+Android gửi email/password
+  -> POST /api/auth/login
+  -> Backend kiểm tra thông tin
+  -> Backend tạo JWT
+  -> Android lưu token
+```
+
+Các request cần đăng nhập sẽ gửi:
+
+```text
+Authorization: Bearer <token>
+```
+
+### 8.3 Admin thêm sản phẩm
+
+```text
+Admin login
+  -> POST /api/categories
+  -> POST /api/products
+  -> POST /api/products/{id}/image
+  -> Product có imageUrl
+```
+
+### 8.4 User xem sản phẩm
+
+```text
+Android mở màn hình sản phẩm
+  -> GET /api/products
+  -> Backend trả danh sách product
+  -> Android hiển thị
+```
+
+### 8.5 User thêm vào giỏ hàng
+
+```text
+User bấm Add To Cart
+  -> POST /api/cart/items
+  -> Backend lấy UserId từ token
+  -> Backend kiểm tra product
+  -> Backend thêm hoặc tăng quantity
+  -> Android reload cart
+```
+
+### 8.6 User đặt hàng
+
+```text
+User nhập address/phone
+  -> POST /api/orders
+  -> Backend lấy cart
+  -> Backend kiểm tra tồn kho
+  -> Backend tính total
+  -> Backend tạo order/order items
+  -> Backend trừ tồn kho
+  -> Backend xóa cart
+  -> Android hiển thị đặt hàng thành công
+```
+
+## 9. Android Integration Plan
+
+Android sẽ nối từng phần.
+
+Thứ tự:
+
+```text
+1. Auth + Product
+2. Category/Admin product nếu UI hiện tại cần
+3. Cart
+4. Order
+5. Xóa Room khỏi luồng chính
+```
+
+Base URL khi chạy emulator:
+
+```text
+http://10.0.2.2:<port>/
+```
+
+Các thay đổi Android dự kiến:
+
+```text
+AndroidManifest.xml
+  -> thêm INTERNET permission
+
+app/build.gradle.kts
+  -> thêm Retrofit/OkHttp
+  -> xóa Room khi bắt đầu nối API
+
+AppModule.kt
+  -> provide Retrofit
+  -> provide AuthApi/ProductApi/CartApi/OrderApi
+  -> bỏ AppDatabase/DAO providers
+
+data/remote/api/
+  -> implement API interfaces thật
+
+data/repository/
+  -> chuyển từ DAO sang API
+
+data/model/
+  -> gỡ Room annotations nếu xóa Room
+```
+
+Rủi ro đã chốt:
+
+- User chọn xóa Room khi bắt đầu nối API.
+- Vì vậy checkpoint Android có thể sửa nhiều file cùng lúc.
+- Trước khi làm checkpoint Android, phải liệt kê rõ toàn bộ file sẽ sửa.
+
+## 10. Checkpoint Thực Thi
+
+### Checkpoint 0: Kiểm Tra Môi Trường
+
+Mục tiêu: xác nhận máy đủ điều kiện tạo backend.
+
+Hành động:
+
+- Kiểm tra `.NET SDK`.
+- Kiểm tra MySQL localhost có thể dùng được hay chưa.
+- Kiểm tra vị trí `backend/ShopApi` chưa tồn tại hoặc xử lý nếu đã tồn tại.
+
+Lệnh dự kiến:
+
+```powershell
+dotnet --info
+Get-ChildItem
+```
+
+Chưa chạy MySQL command nếu chưa được duyệt riêng.
+
+File thay đổi:
+
+```text
+Không có
+```
+
+Hoàn thành khi:
+
+- Biết phiên bản .NET SDK.
+- Biết có thể bắt đầu tạo backend hay chưa.
+- Không có file nào bị sửa.
+
+### Checkpoint 1: Tạo Project Backend Rỗng
+
+Mục tiêu: có ASP.NET Core Web API chạy được.
+
+Hành động:
+
+- Tạo project trong `backend/ShopApi`.
+- Build project.
+- Chạy thử backend.
+- Kiểm tra Swagger.
+
+Lệnh dự kiến:
+
+```powershell
+dotnet new webapi -n ShopApi -o backend/ShopApi
+dotnet build backend/ShopApi
+dotnet run --project backend/ShopApi
+```
+
+File/thư mục thay đổi:
+
+```text
+backend/ShopApi/
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Backend chạy được.
+- Swagger hoạt động.
+
+### Checkpoint 2: Thêm EF Core MySQL
+
+Mục tiêu: backend kết nối được MySQL bằng EF Core.
+
+Hành động:
+
+- Thêm package EF Core MySQL.
+- Tạo `ShopDbContext`.
+- Cấu hình connection string.
+- Đăng ký DbContext trong `Program.cs`.
+
+File dự kiến:
+
+```text
+backend/ShopApi/ShopApi.csproj
+backend/ShopApi/Data/ShopDbContext.cs
+backend/ShopApi/Program.cs
+backend/ShopApi/appsettings.json
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- DbContext được đăng ký.
+- Chưa cần migration.
+
+### Checkpoint 3: Tạo Models Và Quan Hệ
+
+Mục tiêu: định nghĩa database bằng Code First.
+
+Hành động:
+
+- Tạo models: `User`, `Category`, `Product`, `CartItem`, `Order`, `OrderItem`.
+- Khai báo quan hệ trong DbContext.
+- Khai báo ràng buộc cơ bản.
+
+File dự kiến:
+
+```text
+backend/ShopApi/Models/User.cs
+backend/ShopApi/Models/Category.cs
+backend/ShopApi/Models/Product.cs
+backend/ShopApi/Models/CartItem.cs
+backend/ShopApi/Models/Order.cs
+backend/ShopApi/Models/OrderItem.cs
+backend/ShopApi/Data/ShopDbContext.cs
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Model đúng với database design.
+
+### Checkpoint 4: Migration Và Seed Admin
+
+Mục tiêu: tạo database MySQL bằng migration.
+
+Hành động:
+
+- Tạo migration đầu tiên.
+- Update database.
+- Seed admin mặc định.
+- Không seed product/category mẫu.
+
+Lệnh dự kiến:
+
+```powershell
+dotnet ef migrations add InitialCreate --project backend/ShopApi
+dotnet ef database update --project backend/ShopApi
+```
+
+Hoàn thành khi:
+
+- MySQL có database/bảng.
+- Có admin mặc định.
+- Không có product/category mẫu.
+
+Thông tin admin mặc định cần user duyệt trước khi tạo:
+
+```text
+Email: admin@shop.local
+Password: Admin@123
+Role: ADMIN
+```
+
+### Checkpoint 5: Auth API
+
+Mục tiêu: đăng ký, đăng nhập, JWT.
+
+Hành động:
+
+- Tạo DTO auth.
+- Tạo `AuthController`.
+- Implement register.
+- Implement login.
+- Implement endpoint `me`.
+- Cấu hình JWT authentication.
+
+File dự kiến:
+
+```text
+backend/ShopApi/Dtos/AuthDtos.cs
+backend/ShopApi/Controllers/AuthController.cs
+backend/ShopApi/Program.cs
+backend/ShopApi/appsettings.json
+```
+
+Hoàn thành khi:
+
+- Register user được.
+- Login trả token.
+- Token gọi được `/api/auth/me`.
+- Response không trả password/password hash.
+
+### Checkpoint 6: Category API
+
+Mục tiêu: admin quản lý category, user xem category.
+
+Hành động:
+
+- Tạo DTO category.
+- Tạo `CategoriesController`.
+- Implement GET/POST/PUT/DELETE.
+- Bảo vệ API admin bằng role.
+
+Hoàn thành khi:
+
+- User gọi GET được.
+- Admin tạo/sửa/xóa được.
+- User thường không gọi được API admin.
+
+### Checkpoint 7: Product API Và Upload Ảnh
+
+Mục tiêu: quản lý product và upload ảnh sản phẩm.
+
+Hành động:
+
+- Tạo DTO product.
+- Tạo `ProductsController`.
+- Implement GET/POST/PUT/DELETE.
+- Implement `POST /api/products/{id}/image`.
+- Cấu hình static files.
+- Lưu ảnh vào `wwwroot/uploads/products`.
+
+Hoàn thành khi:
+
+- Admin tạo product được.
+- Admin upload ảnh được.
+- Product response có `imageUrl`.
+- User xem danh sách product được.
+
+### Checkpoint 8: Cart API
+
+Mục tiêu: user quản lý cart qua backend.
+
+Hành động:
+
+- Tạo DTO cart.
+- Tạo `CartController`.
+- Implement GET cart.
+- Implement add item.
+- Implement update quantity.
+- Implement delete item.
+- Implement clear cart.
+
+Hoàn thành khi:
+
+- Cart gắn với user từ token.
+- Không truyền `userId` từ Android.
+- Product trùng thì tăng quantity.
+
+### Checkpoint 9: Order API
+
+Mục tiêu: user đặt hàng, admin quản lý trạng thái.
+
+Hành động:
+
+- Tạo DTO order.
+- Tạo `OrdersController`.
+- Implement create order from cart.
+- Implement my orders.
+- Implement admin all orders.
+- Implement admin update status.
+- Trừ tồn kho khi đặt hàng.
+
+Hoàn thành khi:
+
+- Cart rỗng không đặt được.
+- Vượt tồn kho không đặt được.
+- Đặt thành công tạo order/order items.
+- Đặt thành công xóa cart.
+- Admin cập nhật status được.
+
+### Checkpoint 10: Backend Verification
+
+Mục tiêu: backend API đủ ổn trước khi sửa Android.
+
+Kiểm tra:
+
+```text
+Register
+Login
+Me
+Create category
+Create product
+Upload product image
+Get products
+Add cart item
+Update cart item
+Create order
+Get my orders
+Admin get orders
+Admin update order status
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Swagger test được các luồng chính.
+- Không còn lỗi nghiêm trọng trước khi nối Android.
+
+### Checkpoint 11: Nối Android Auth + Product Và Xóa Room
+
+Mục tiêu: Android đăng nhập và xem product qua backend.
+
+Hành động:
+
+- Thêm Retrofit/OkHttp.
+- Thêm Internet permission.
+- Cấu hình base URL `10.0.2.2`.
+- Implement `AuthApi`.
+- Implement `ProductApi`.
+- Sửa `AppModule`.
+- Sửa `AuthRepository`.
+- Sửa `ProductRepository`.
+- Xóa Room khỏi luồng DI/repository liên quan.
+- Gỡ Room annotations/dependency nếu không còn dùng.
+
+Trước checkpoint này, Codex phải liệt kê chính xác file Android sẽ sửa.
+
+Hoàn thành khi:
+
+- Android build pass.
+- Register/login qua backend.
+- Product list lấy từ backend.
+
+### Checkpoint 12: Nối Android Cart
+
+Mục tiêu: Android cart dùng backend.
+
+Hành động:
+
+- Implement `CartApi`.
+- Sửa `CartRepository`.
+- Sửa `CartViewModel` nếu cần.
+- Điều chỉnh UI nếu field response thay đổi.
+
+Hoàn thành khi:
+
+- Add to cart gọi backend.
+- Cart screen hiển thị cart từ backend.
+- Update/delete cart hoạt động.
+
+### Checkpoint 13: Nối Android Order
+
+Mục tiêu: Android checkout/order dùng backend.
+
+Hành động:
+
+- Implement `OrderApi`.
+- Sửa `OrderRepository`.
+- Sửa `OrderViewModel` nếu cần.
+- Checkout gửi `address` và `phoneNumber`.
+
+Hoàn thành khi:
+
+- Checkout tạo order qua backend.
+- Cart bị clear sau đặt hàng.
+- Order history lấy từ backend.
+
+### Checkpoint 14: Dọn Dẹp Và Kiểm Thử Cuối
+
+Mục tiêu: hệ thống ổn định sau khi chuyển REST API.
+
+Hành động:
+
+- Tìm phần Room còn sót.
+- Xóa code/dependency không còn dùng nếu user duyệt.
+- Build backend.
+- Build Android.
+- Test luồng chính.
+
+Luồng test cuối:
+
+```text
+Admin login
+Admin tạo category
+Admin tạo product
+Admin upload ảnh product
+User register
+User login
+User xem product
+User thêm cart
+User đặt hàng COD
+User xem order history
+Admin cập nhật status order
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Android build pass.
+- Luồng chính chạy end-to-end.
+- Có danh sách vấn đề còn lại nếu có.
+
+## 11. Quy Tắc Dừng
+
+Phải dừng và hỏi user nếu gặp một trong các tình huống:
+
+- Máy chưa có .NET SDK.
+- Không kết nối được MySQL localhost.
+- `backend/ShopApi` đã tồn tại và có nội dung.
+- Cần sửa file Android đang có thay đổi chưa rõ nguồn gốc.
+- Backend build fail do nguyên nhân ngoài checkpoint.
+- Android build fail do lỗi không liên quan checkpoint.
+- Cần xóa file lớn hoặc đổi kiến trúc.
+- API contract cần đổi so với tài liệu này.
+- Cần dùng package ngoài kế hoạch.
+
+## 12. Tiêu Chí Hoàn Thành Toàn Bộ
+
+Dự án được coi là hoàn thành khi:
+
+```text
+Backend ASP.NET Core chạy được.
+MySQL có schema từ Code First migration.
+JWT login hoạt động.
+Admin quản lý category/product được.
+Upload ảnh product hoạt động.
+User xem product được.
+User quản lý cart được.
+User đặt hàng COD được.
+Backend tự tính tổng tiền.
+Backend trừ tồn kho.
+Admin cập nhật trạng thái order được.
+Android gọi backend bằng Retrofit.
+Room không còn là nguồn dữ liệu chính.
+```
+
+## 13. Checkpoint Tiếp Theo Chờ Duyệt
+
+Checkpoint tiếp theo là:
+
+```text
+Checkpoint 0: Kiểm Tra Môi Trường
+```
+
+Hành động dự kiến:
+
+```powershell
+dotnet --info
+Get-ChildItem
+```
+
+File thay đổi:
+
+```text
+Không có
+```
+
+Chỉ khi user duyệt checkpoint 0, Codex mới chạy lệnh kiểm tra.
+

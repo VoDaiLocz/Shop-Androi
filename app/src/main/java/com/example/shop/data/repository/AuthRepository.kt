@@ -10,13 +10,13 @@ import javax.inject.Inject
 class AuthRepository @Inject constructor(
     private val userDao: UserDao
 ) {
-    // 1. Thêm biến này để lưu trữ User hiện tại
+    //Thêm biến này để lưu trữ User hiện tại
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
     suspend fun login(email: String, password: String): User? {
         val user = userDao.login(email, password)
-        // 2. Gán user tìm được vào StateFlow nếu login thành công
+        //Gán user tìm được vào StateFlow nếu login thành công
         _currentUser.value = user
         return user
     }
@@ -31,7 +31,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    // 3. Thêm hàm logout
+    //Thêm hàm logout
     fun logout() {
         _currentUser.value = null
     }

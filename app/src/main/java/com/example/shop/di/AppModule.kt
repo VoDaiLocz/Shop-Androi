@@ -64,7 +64,7 @@ object AppModule {
         return db.addressDao()
     }
 
-    // --- REPOSITORIES (BẮT BUỘC PHẢI CÓ @SINGLETON Ở ĐÂY) ---
+    // --- REPOSITORIES---
 
     @Provides
     @Singleton // Giúp giữ thông tin User khi chuyển màn hình

@@ -28,10 +28,10 @@ fun CheckoutScreen(
     orderViewModel: OrderViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    // 1. Lấy User hiện tại
+    //Lấy User hiện tại
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // 2. Lấy giỏ hàng - OrderViewModel cần có hàm lấy cart theo UserId
+    // Lấy giỏ hàng - OrderViewModel cần có hàm lấy cart theo UserId
     // Nếu OrderViewModel chưa có, bạn nên truyền UserId vào init hoặc dùng collectAsState
     val cartItems by orderViewModel.cartItems.collectAsState()
 
