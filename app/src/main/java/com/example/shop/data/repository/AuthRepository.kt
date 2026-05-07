@@ -1,38 +1,65 @@
 package com.example.shop.data.repository
 
-import com.example.shop.data.local.dao.UserDao
 import com.example.shop.data.model.User
+import com.example.shop.data.remote.api.AuthApi
+import com.example.shop.data.remote.dto.ApiUserResponse
+import com.example.shop.data.remote.dto.LoginRequest
+import com.example.shop.data.remote.dto.RegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class AuthRepository @Inject constructor(
-    private val userDao: UserDao
+    private val authApi: AuthApi
 ) {
-    //Thêm biến này để lưu trữ User hiện tại
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
+    private val _currentToken = MutableStateFlow<String?>(null)
+    val currentToken: StateFlow<String?> = _currentToken.asStateFlow()
+
     suspend fun login(email: String, password: String): User? {
-        val user = userDao.login(email, password)
-        //Gán user tìm được vào StateFlow nếu login thành công
-        _currentUser.value = user
-        return user
+        return runCatching {
+            val response = authApi.login(LoginRequest(email.trim(), password))
+            val user = response.user.toUser()
+            _currentToken.value = response.token
+            _currentUser.value = user
+            user
+        }.getOrNull()
     }
 
     suspend fun register(user: User): Boolean {
-        val existingUser = userDao.getUserByEmail(user.email)
-        return if (existingUser == null){
-            userDao.register(user)
+        return runCatching {
+            authApi.register(
+                RegisterRequest(
+                    username = user.username.trim(),
+                    email = user.email.trim(),
+                    password = user.password
+                )
+            )
             true
-        } else {
-            false
-        }
+        }.getOrDefault(false)
     }
 
-    //Thêm hàm logout
     fun logout() {
         _currentUser.value = null
+        _currentToken.value = null
+    }
+
+    fun getAuthorizationHeader(): String? {
+        return _currentToken.value?.let { token -> "Bearer $token" }
+    }
+
+    private fun ApiUserResponse.toUser(): User {
+        return User(
+            id = id,
+            username = username,
+            email = email,
+            password = "",
+            role = role
+        )
     }
 }
