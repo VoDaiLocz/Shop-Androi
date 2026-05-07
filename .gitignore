@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# .NET backend build outputs
+bin/
+obj/
