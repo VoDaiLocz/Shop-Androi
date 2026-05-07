@@ -162,7 +162,7 @@ fun AdminOrderItemCard(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
-                        val statusOptions = listOf("PENDING", "SHIPPING", "COMPLETED", "CANCELLED")
+                        val statusOptions = listOf("Pending", "Shipping", "Delivered", "Cancelled")
                         statusOptions.forEach { status ->
                             DropdownMenuItem(
                                 text = { Text(status) },
@@ -184,7 +184,7 @@ fun StatusBadge(status: String) {
     val color = when (status.uppercase()) {
         "PENDING" -> Color(0xFFFFA500) // Cam
         "SHIPPING" -> Color(0xFF2196F3) // Xanh dương
-        "COMPLETED" -> Color(0xFF4CAF50) // Xanh lá
+        "DELIVERED" -> Color(0xFF4CAF50) // Xanh lá
         "CANCELLED" -> Color.Red
         else -> Color.Gray
     }

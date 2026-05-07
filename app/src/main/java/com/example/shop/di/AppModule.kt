@@ -4,13 +4,12 @@ import android.content.Context
 import com.example.shop.data.local.dao.AddressDao
 import com.example.shop.data.local.dao.CartDao
 import com.example.shop.data.local.dao.CategoryDao
-import com.example.shop.data.local.dao.OrderDao
 import com.example.shop.data.local.db.AppDatabase
 import com.example.shop.data.remote.api.AuthApi
 import com.example.shop.data.remote.api.CartApi
+import com.example.shop.data.remote.api.OrderApi
 import com.example.shop.data.remote.api.ProductApi
 import com.example.shop.data.repository.AddressRepository
-import com.example.shop.data.repository.OrderRepository
 import com.example.shop.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -70,6 +69,12 @@ object AppModule {
         return retrofit.create(CartApi::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideOrderApi(retrofit: Retrofit): OrderApi {
+        return retrofit.create(OrderApi::class.java)
+    }
+
     //======================CATEGORY============================
     @Provides
     fun provideCategoryDao(db: AppDatabase): CategoryDao {
@@ -82,24 +87,12 @@ object AppModule {
         return db.cartDao()
     }
 
-    //======================Order====================================
-    @Provides
-    fun provideOrderDao(db: AppDatabase): OrderDao {
-        return db.orderDao()
-    }
-
     @Provides
     fun provideAddressDao(db: AppDatabase): AddressDao {
         return db.addressDao()
     }
 
     // --- REPOSITORIES---
-    @Provides
-    @Singleton
-    fun provideOrderRepository(orderDao: OrderDao, cartDao: CartDao): OrderRepository {
-        return OrderRepository(orderDao, cartDao)
-    }
-
     @Provides
     @Singleton
     fun provideAddressRepository(addressDao: AddressDao): AddressRepository {

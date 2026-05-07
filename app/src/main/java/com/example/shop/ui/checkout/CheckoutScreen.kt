@@ -37,6 +37,7 @@ fun CheckoutScreen(
 
     var address by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val totalPrice = cartItems.sumOf { it.price * it.quantity }
 
@@ -85,6 +86,14 @@ fun CheckoutScreen(
 
             Text(text = "Tóm tắt đơn hàng", style = MaterialTheme.typography.titleMedium)
 
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(cartItems) { item ->
                     Row(
@@ -131,8 +140,14 @@ fun CheckoutScreen(
                                     address = address,
                                     phoneNumber = phoneNumber,
                                     totalPrice = totalPrice
-                                )
-                                onPlaceOrder()
+                                ) { success ->
+                                    if (success) {
+                                        errorMessage = null
+                                        onPlaceOrder()
+                                    } else {
+                                        errorMessage = "Đặt hàng thất bại. Vui lòng kiểm tra giỏ hàng hoặc tồn kho."
+                                    }
+                                }
                             }
                         },
                         // Nút chỉ bật khi có đủ thông tin và có hàng trong giỏ

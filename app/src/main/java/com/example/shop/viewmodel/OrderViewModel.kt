@@ -46,7 +46,13 @@ class OrderViewModel @Inject constructor(
         )
 
     // Hàm xử lý đặt hàng
-    fun placeOrder(userId: Int, address: String, phoneNumber: String, totalPrice: Double) {
+    fun placeOrder(
+        userId: Int,
+        address: String,
+        phoneNumber: String,
+        totalPrice: Double,
+        onResult: (Boolean) -> Unit
+    ) {
         viewModelScope.launch {
             val items = cartItems.value
             if (items.isNotEmpty()) {
@@ -58,7 +64,13 @@ class OrderViewModel @Inject constructor(
                     phoneNumber = phoneNumber,
                     status = "Pending"
                 )
-                orderRepository.placeOrder(newOrder, items)
+                val success = orderRepository.placeOrder(newOrder, items)
+                if (success) {
+                    cartRepository.refreshCart()
+                }
+                onResult(success)
+            } else {
+                onResult(false)
             }
         }
     }

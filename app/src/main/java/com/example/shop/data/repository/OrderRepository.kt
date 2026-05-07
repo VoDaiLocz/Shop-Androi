@@ -1,48 +1,94 @@
 package com.example.shop.data.repository
 
-import com.example.shop.data.local.dao.CartDao
-import com.example.shop.data.local.dao.OrderDao
 import com.example.shop.data.model.CartItem
 import com.example.shop.data.model.Order
-import com.example.shop.data.model.OrderItem
 import com.example.shop.data.model.OrderWithItems
+import com.example.shop.data.remote.api.OrderApi
+import com.example.shop.data.remote.dto.CreateOrderRequest
+import com.example.shop.data.remote.dto.UpdateOrderStatusRequest
+import com.example.shop.data.remote.dto.toOrderWithItems
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class OrderRepository @Inject constructor(
-    private val orderDao: OrderDao,
-    private val cartDao: CartDao
+    private val orderApi: OrderApi,
+    private val authRepository: AuthRepository
 ) {
-    // Lấy lịch sử đơn hàng của User
-    fun getOrdersByUserId(userId: Int): Flow<List<OrderWithItems>> =
-        orderDao.getOrdersWithItemsByUserId(userId)
+    private val _myOrders = MutableStateFlow<List<OrderWithItems>>(emptyList())
+    private val _allOrders = MutableStateFlow<List<OrderWithItems>>(emptyList())
 
-    // Logic đặt hàng
-    suspend fun placeOrder(order: Order, cartItems: List<CartItem>) {
-        //Insert Order và lấy ID vừa tạo
-        val orderId = orderDao.insertOrder(order).toInt()
-
-        //Chuyển CartItem thành OrderItem
-        val orderItems = cartItems.map { cart ->
-            OrderItem(
-                orderId = orderId,
-                productId = cart.productId.toInt(),
-                productName = cart.productName,
-                quantity = cart.quantity,
-                price = cart.price
-            )
-        }
-        orderDao.insertOrderItems(orderItems)
-
-        //Xóa giỏ hàng sau khi đặt hàng thành công
-        cartDao.clearCart(order.userId)
+    fun getOrdersByUserId(_userId: Int): Flow<List<OrderWithItems>> = flow {
+        refreshMyOrders()
+        emitAll(_myOrders.asStateFlow())
     }
 
-    //Admin lấy toàn bộ đơn hàng của tất cả người dùng
-    fun getALLOrders(): Flow<List<OrderWithItems>> = orderDao.getALLOrders()
+    suspend fun placeOrder(order: Order, cartItems: List<CartItem>): Boolean {
+        val authorization = authRepository.getAuthorizationHeader() ?: return false
+        if (cartItems.isEmpty()) return false
 
-    //Admin cập nhật trạng thái đơn hàng (Ví dụ: Chuyển từ PENDING sang SHIPPING)
+        return runCatching {
+            val createdOrder = orderApi.createOrder(
+                authorization,
+                CreateOrderRequest(
+                    address = order.address,
+                    phoneNumber = order.phoneNumber
+                )
+            )
+            _myOrders.value = listOf(createdOrder.toOrderWithItems()) + _myOrders.value
+            true
+        }.getOrDefault(false)
+    }
+
+    fun getALLOrders(): Flow<List<OrderWithItems>> = flow {
+        refreshAllOrders()
+        emitAll(_allOrders.asStateFlow())
+    }
+
     suspend fun updateOrderStatus(orderId: Int, status: String) {
-        orderDao.updateOrderStatus(orderId, status)
+        val authorization = authRepository.getAuthorizationHeader() ?: return
+
+        runCatching {
+            orderApi.updateStatus(
+                authorization,
+                orderId,
+                UpdateOrderStatusRequest(status = status)
+            )
+        }.onSuccess {
+            refreshAllOrders()
+        }
+    }
+
+    private suspend fun refreshMyOrders() {
+        val authorization = authRepository.getAuthorizationHeader()
+        if (authorization == null) {
+            _myOrders.value = emptyList()
+            return
+        }
+
+        runCatching {
+            orderApi.getMyOrders(authorization)
+        }.onSuccess { orders ->
+            _myOrders.value = orders.map { it.toOrderWithItems() }
+        }
+    }
+
+    private suspend fun refreshAllOrders() {
+        val authorization = authRepository.getAuthorizationHeader()
+        if (authorization == null) {
+            _allOrders.value = emptyList()
+            return
+        }
+
+        runCatching {
+            orderApi.getAllOrders(authorization)
+        }.onSuccess { orders ->
+            _allOrders.value = orders.map { it.toOrderWithItems() }
+        }
     }
 }
