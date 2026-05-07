@@ -1,19 +1,14 @@
 package com.example.shop.di
 
-import android.content.Context
-import com.example.shop.data.local.dao.AddressDao
-import com.example.shop.data.local.db.AppDatabase
 import com.example.shop.data.remote.api.AuthApi
 import com.example.shop.data.remote.api.CartApi
 import com.example.shop.data.remote.api.CategoryApi
 import com.example.shop.data.remote.api.OrderApi
 import com.example.shop.data.remote.api.ProductApi
-import com.example.shop.data.repository.AddressRepository
 import com.example.shop.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -24,13 +19,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-    @Provides
-    @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getDatabase(context)
-    }
-
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
@@ -78,17 +66,5 @@ object AppModule {
     @Singleton
     fun provideOrderApi(retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
-    }
-
-    @Provides
-    fun provideAddressDao(db: AppDatabase): AddressDao {
-        return db.addressDao()
-    }
-
-    // --- REPOSITORIES---
-    @Provides
-    @Singleton
-    fun provideAddressRepository(addressDao: AddressDao): AddressRepository {
-        return AddressRepository(addressDao)
     }
 }

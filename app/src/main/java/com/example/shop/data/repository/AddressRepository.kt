@@ -1,27 +1,36 @@
 package com.example.shop.data.repository
 
-import com.example.shop.data.local.dao.AddressDao
 import com.example.shop.data.model.Address
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
+class AddressRepository @Inject constructor() {
+    private val addresses = MutableStateFlow<List<Address>>(emptyList())
+    private var nextId = 1
 
-class AddressRepository @Inject constructor(
-    private val addressDao: AddressDao
-){
-    // Lấy danh sách địa chỉ của User dưới dạng luồng dữ liệu (Flow)
     fun getAddressesByUserId(userId: Int): Flow<List<Address>> =
-        addressDao.getAddressesByUserId(userId)
+        addresses.map { list -> list.filter { address -> address.userId == userId } }
 
-    suspend fun addAddress(address: Address){
-        addressDao.insertAddress(address)
+    suspend fun addAddress(address: Address) {
+        val newAddress = address.copy(id = nextId++)
+        addresses.value = addresses.value + newAddress
     }
 
-    suspend fun deleteAddress(address: Address){
-        addressDao.deleteAddress(address)
+    suspend fun deleteAddress(address: Address) {
+        addresses.value = addresses.value.filterNot { item -> item.id == address.id }
     }
 
-    suspend fun setAsDefault(addressId: Int, userId: Int){
-        addressDao.setAsDefault(addressId, userId)
+    suspend fun setAsDefault(addressId: Int, userId: Int) {
+        addresses.value = addresses.value.map { address ->
+            if (address.userId == userId) {
+                address.copy(isDefault = address.id == addressId)
+            } else {
+                address
+            }
+        }
     }
 }

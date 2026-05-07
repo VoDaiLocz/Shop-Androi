@@ -29,9 +29,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-        ksp {
-            arg("room.generateKotlin", "true")
-        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -46,11 +43,8 @@ android {
 }
 
 dependencies {
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
     implementation(libs.androidx.compose.runtime)
     implementation(libs.litert.support.api)
-    ksp("androidx.room:room-compiler:2.6.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
