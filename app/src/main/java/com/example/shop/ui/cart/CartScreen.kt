@@ -47,7 +47,7 @@ fun CartScreen(
     onCheckout: () -> Unit,
     viewModel: CartViewModel = hiltViewModel()
 ) {
-    // Sử dụng collectAsState() để quan sát thay đổi từ Database
+    // Quan sát giỏ hàng lấy từ backend qua repository.
     val items by viewModel.cartItems.collectAsState(initial = emptyList())
     // Tính tổng tiền từ danh sách hiện tại
     val totalPrice = items.sumOf { it.price * it.quantity }

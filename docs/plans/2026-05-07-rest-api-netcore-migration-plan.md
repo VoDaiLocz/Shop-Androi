@@ -1182,23 +1182,40 @@ Room đã được xóa hoàn toàn khỏi Android.
 Checkpoint tiếp theo là:
 
 ```text
-Checkpoint 21: Rà Soát Và Khóa Contract Model Android - Backend
+Checkpoint 24: Dọn Code Placeholder Chưa Có Luồng Thật
 ```
 
 Hành động dự kiến:
 
 ```text
-Đối chiếu toàn bộ model Android với backend entity/DTO/API, chốt cái nào cần backend, cái nào là model ghép, cái nào là code dư cần dọn.
+Dọn các file placeholder chưa có luồng thật như Payment, Review, Notification, Firebase stub và admin user trống nếu không được dùng.
 ```
 
 File thay đổi:
 
 ```text
-docs/plans/2026-05-07-rest-api-netcore-migration-plan.md
+app/src/main/java/com/example/shop/data/model/Payment.kt
+app/src/main/java/com/example/shop/data/model/Review.kt
+app/src/main/java/com/example/shop/data/model/Notification.kt
+app/src/main/java/com/example/shop/data/repository/PaymentRepository.kt
+app/src/main/java/com/example/shop/data/repository/ReviewRepository.kt
+app/src/main/java/com/example/shop/data/repository/NotificationRepository.kt
+app/src/main/java/com/example/shop/viewmodel/PaymentViewModel.kt
+app/src/main/java/com/example/shop/viewmodel/ReviewViewModel.kt
+app/src/main/java/com/example/shop/viewmodel/NotificationViewModel.kt
+app/src/main/java/com/example/shop/ui/payment/PaymentScreen.kt
+app/src/main/java/com/example/shop/ui/payment/AddPaymentScreen.kt
+app/src/main/java/com/example/shop/ui/review/ReviewScreen.kt
+app/src/main/java/com/example/shop/ui/review/MyReviewScreen.kt
+app/src/main/java/com/example/shop/ui/notification/NotificationScreen.kt
+app/src/main/java/com/example/shop/data/remote/firebase/FirebaseAuthService.kt
+app/src/main/java/com/example/shop/data/remote/firebase/FirestoreService.kt
+app/src/main/java/com/example/shop/admin/ui/user/ManageUserScreen.kt
+app/src/main/java/com/example/shop/admin/viewmodel/AdminUserViewModel.kt
 PROGRESS.md
 ```
 
-Chỉ khi user duyệt checkpoint 21, Codex mới cập nhật docs review cuối và sang các phase code tiếp theo.
+Chỉ khi user duyệt checkpoint 24, Codex mới dọn tiếp các placeholder này.
 
 ## 14. Kế Hoạch Bổ Sung Sau Rà Soát 2026-05-10
 

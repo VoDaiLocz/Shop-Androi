@@ -29,7 +29,7 @@ data class UpdateCartItemRequest(
 fun CartItemResponse.toCartItem(): CartItem {
     return CartItem(
         id = id,
-        productId = productId.toString(),
+        productId = productId,
         productName = productName,
         quantity = quantity,
         price = price,

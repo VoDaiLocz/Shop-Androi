@@ -40,13 +40,12 @@ class CartRepository @Inject constructor(
 
     suspend fun addToCart(cartItem: CartItem) {
         val authorization = authRepository.getAuthorizationHeader() ?: return
-        val productId = cartItem.productId.toIntOrNull() ?: return
         if (cartItem.quantity <= 0) return
 
         runCatching {
             cartApi.addItem(
                 authorization,
-                AddCartItemRequest(productId = productId, quantity = cartItem.quantity)
+                AddCartItemRequest(productId = cartItem.productId, quantity = cartItem.quantity)
             )
         }.onSuccess { response ->
             _cartItems.value = response.items.map { it.toCartItem() }

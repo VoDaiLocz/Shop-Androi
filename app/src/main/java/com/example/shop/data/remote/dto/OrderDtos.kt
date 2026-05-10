@@ -58,7 +58,8 @@ fun OrderResponse.toOrderWithItems(): OrderWithItems {
                 productId = item.productId,
                 productName = item.productName,
                 quantity = item.quantity,
-                price = item.price
+                price = item.price,
+                imageUrl = item.imageUrl
             )
         }
     )

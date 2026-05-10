@@ -131,7 +131,7 @@ fun ProductDetailScreen(
                                 // Tạo đối tượng CartItem từ thông tin sản phẩm hiện tại
                                 val newItem = CartItem(
                                     userId = user.id,
-                                    productId = item.id.toString(),
+                                    productId = item.id,
                                     productName = item.name,
                                     price = item.price,
                                     quantity = 1, // Mặc định thêm 1 sản phẩm

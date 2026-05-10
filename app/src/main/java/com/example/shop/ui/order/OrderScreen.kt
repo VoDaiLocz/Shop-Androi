@@ -26,7 +26,7 @@ fun OrderScreen(
 ) {
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // Lấy danh sách đơn hàng dựa trên ID người dùng hiện tại
+    // Lấy danh sách đơn hàng của user hiện tại từ backend.
     val orders by orderViewModel.getOrderHistory(currentUser?.id ?: 0)
         .collectAsState(initial = emptyList())
 
@@ -78,7 +78,6 @@ fun OrderHistoryCard(orderWithItems: OrderWithItems) {
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // Hiển thị danh sách sản phẩm tóm tắt trong Card
             orderWithItems.items.forEach { item ->
                 Text("• ${item.productName} x${item.quantity}", fontSize = 14.sp)
             }
@@ -95,7 +94,6 @@ fun OrderHistoryCard(orderWithItems: OrderWithItems) {
     }
 }
 
-// Hàm helper để format ngày tháng
 fun formatDate(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))

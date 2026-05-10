@@ -134,7 +134,7 @@ fun CheckoutScreen(
                         onClick = {
                             val user = currentUser
                             if (user != null && address.isNotBlank() && phoneNumber.isNotBlank()) {
-                                // 3. Gọi đặt hàng với UserId thật từ Database
+                                // 3. Gọi đặt hàng với user hiện tại qua backend.
                                 orderViewModel.placeOrder(
                                     userId = user.id, // Đảm bảo dùng user.id không dùng 0
                                     address = address,
