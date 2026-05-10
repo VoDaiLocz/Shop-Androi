@@ -51,6 +51,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+await MigrateDatabaseAsync(app.Services);
+
 if (args.Contains("--seed-admin", StringComparer.OrdinalIgnoreCase))
 {
     await DatabaseSeeder.SeedAdminAsync(app.Services, app.Environment.IsDevelopment());
@@ -75,3 +77,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static async Task MigrateDatabaseAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
+    await db.Database.MigrateAsync();
+}
