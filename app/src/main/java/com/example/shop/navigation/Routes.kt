@@ -1,7 +1,4 @@
 object Routes {
-    const val AUTH = "auth"
-    const val MAIN = "main"
-    const val BOARDING = "boarding"
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val HOME = "home"

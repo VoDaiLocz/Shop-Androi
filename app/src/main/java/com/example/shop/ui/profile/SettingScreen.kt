@@ -1,8 +1,12 @@
 package com.example.shop.ui.profile
 
-import androidx.compose.foundation.layout.*import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,7 +20,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingScreen(onNavigateBack: () -> Unit) {
     var isDarkMode by remember { mutableStateOf(false) }
-    var isNotificationEnabled by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
@@ -24,7 +27,7 @@ fun SettingScreen(onNavigateBack: () -> Unit) {
                 title = { Text("Cài đặt hệ thống") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -37,7 +40,6 @@ fun SettingScreen(onNavigateBack: () -> Unit) {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Cài đặt Chế độ tối
             ListItem(
                 headlineContent = { Text("Chế độ tối (Dark Mode)") },
                 leadingContent = { Icon(Icons.Default.DarkMode, null) },
@@ -46,20 +48,8 @@ fun SettingScreen(onNavigateBack: () -> Unit) {
                 }
             )
 
-            HorizontalDivider()
-
-            // Cài đặt thông báo
-            ListItem(
-                headlineContent = { Text("Nhận thông báo khuyến mãi") },
-                leadingContent = { Icon(Icons.Default.Notifications, null) },
-                trailingContent = {
-                    Switch(checked = isNotificationEnabled, onCheckedChange = { isNotificationEnabled = it })
-                }
-            )
-
             Spacer(modifier = Modifier.weight(1f))
 
-            // Hiển thị phiên bản
             Text(
                 text = "Phiên bản ứng dụng: 1.0.0",
                 style = MaterialTheme.typography.bodySmall,
