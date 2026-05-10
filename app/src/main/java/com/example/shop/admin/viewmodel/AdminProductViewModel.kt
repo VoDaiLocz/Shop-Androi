@@ -1,5 +1,6 @@
 package com.example.shop.admin.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shop.data.model.Category
@@ -41,6 +42,7 @@ class AdminProductViewModel @Inject constructor(
         imageUrl: String,
         quantity: Int,
         categoryId: Int,
+        imageUri: Uri?,
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
@@ -52,7 +54,17 @@ class AdminProductViewModel @Inject constructor(
                 quantity = quantity,
                 categoryId = categoryId
             )
-            onResult(productRepository.insertProduct(newProduct))
+            val createdProduct = productRepository.insertProduct(newProduct)
+            val success = if (createdProduct != null && imageUri != null) {
+                val uploaded = productRepository.uploadProductImage(createdProduct.id, imageUri)
+                if (!uploaded) {
+                    productRepository.deleteProduct(createdProduct)
+                }
+                uploaded
+            } else {
+                createdProduct != null
+            }
+            onResult(success)
         }
     }
 
@@ -64,6 +76,7 @@ class AdminProductViewModel @Inject constructor(
         imageUrl: String,
         quantity: Int,
         categoryId: Int,
+        imageUri: Uri?,
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
@@ -76,7 +89,13 @@ class AdminProductViewModel @Inject constructor(
                 quantity = quantity,
                 categoryId = categoryId
             )
-            onResult(productRepository.updateProduct(updatedProduct))
+            val savedProduct = productRepository.updateProduct(updatedProduct)
+            val success = if (savedProduct != null && imageUri != null) {
+                productRepository.uploadProductImage(savedProduct.id, imageUri)
+            } else {
+                savedProduct != null
+            }
+            onResult(success)
         }
     }
 

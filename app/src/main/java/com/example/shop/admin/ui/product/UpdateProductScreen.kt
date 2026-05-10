@@ -1,5 +1,8 @@
 package com.example.shop.admin.ui.product
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,6 +33,10 @@ fun UpdateProductScreen(
     var imageUrl by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        imageUri = uri
+    }
 
     //State cho Category
     val categories by viewModel.allCategories.collectAsState(initial = emptyList())
@@ -151,6 +158,13 @@ fun UpdateProductScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                OutlinedButton(
+                    onClick = { imagePicker.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (imageUri == null) "Chọn ảnh mới từ máy" else "Đã chọn ảnh mới")
+                }
+
                 errorMessage?.let { message ->
                     Text(
                         text = message,
@@ -178,7 +192,8 @@ fun UpdateProductScreen(
                                     description = description,
                                     imageUrl = imageUrl,
                                     quantity = productQuantity,
-                                    categoryId = selectedCategoryId
+                                    categoryId = selectedCategoryId,
+                                    imageUri = imageUri
                                 ) { success ->
                                     if (success) {
                                         onNavigateBack()
