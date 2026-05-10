@@ -10,14 +10,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomBar(navController: NavHostController) {
+fun BottomBar(
+    navController: NavHostController,
+    cartItemCount: Int
+) {
 
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar {
-
-        // HOME
         NavigationBarItem(
             selected = currentRoute == Routes.HOME,
             onClick = {
@@ -32,7 +33,6 @@ fun BottomBar(navController: NavHostController) {
             label = { Text("Home") }
         )
 
-        // CART (🔥 có badge)
         NavigationBarItem(
             selected = currentRoute == Routes.CART,
             onClick = {
@@ -42,20 +42,23 @@ fun BottomBar(navController: NavHostController) {
                 }
             },
             icon = {
-                BadgedBox(
-                    badge = {
-                        Badge {
-                            Text("3") // 👉 sau này lấy từ DB
+                if (cartItemCount > 0) {
+                    BadgedBox(
+                        badge = {
+                            Badge {
+                                Text(cartItemCount.toString())
+                            }
                         }
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
                     }
-                ) {
+                } else {
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
                 }
             },
             label = { Text("Cart") }
         )
 
-        // PROFILE
         NavigationBarItem(
             selected = currentRoute == Routes.PROFILE,
             onClick = {

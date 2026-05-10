@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.navigation.compose.rememberNavController
 import com.example.shop.ui.main.MainScreen
 import com.example.shop.ui.theme.ShopTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,8 +17,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ShopTheme {
-                val navController = rememberNavController()
-                MainScreen(rootNavController = navController)
+                MainScreen()
             }
         }
     }

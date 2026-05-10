@@ -1,6 +1,24 @@
 @ShopApi_HostAddress = http://localhost:5053
+@Token = paste-token-here
 
-GET {{ShopApi_HostAddress}}/weatherforecast/
+### Login admin
+POST {{ShopApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shop.local",
+  "password": "Admin123456!"
+}
+
+### Get products
+GET {{ShopApi_HostAddress}}/api/products
 Accept: application/json
 
-###
+### Get categories
+GET {{ShopApi_HostAddress}}/api/categories
+Accept: application/json
+
+### Get users as admin
+GET {{ShopApi_HostAddress}}/api/users
+Authorization: Bearer {{Token}}
+Accept: application/json
