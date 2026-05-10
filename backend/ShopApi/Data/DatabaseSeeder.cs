@@ -6,41 +6,53 @@ namespace ShopApi.Data;
 
 public static class DatabaseSeeder
 {
-    public static async Task SeedAdminAsync(IServiceProvider services)
+    private const string DevelopmentAdminEmail = "admin@shop.local";
+    private const string DevelopmentAdminUsername = "Admin";
+    private const string DevelopmentAdminPassword = "Admin123456!";
+
+    public static async Task SeedAdminAsync(IServiceProvider services, bool allowDevelopmentDefaults = false)
     {
         using var scope = services.CreateScope();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
 
-        var email = configuration["AdminSeed:Email"] ?? "admin@shop.local";
-        var username = configuration["AdminSeed:Username"] ?? "Admin";
+        var email = configuration["AdminSeed:Email"] ?? DevelopmentAdminEmail;
+        var username = configuration["AdminSeed:Username"] ?? DevelopmentAdminUsername;
         var password = configuration["AdminSeed:Password"];
 
         if (string.IsNullOrWhiteSpace(password))
         {
-            throw new InvalidOperationException("Admin seed password is not configured. Set AdminSeed__Password before running --seed-admin.");
+            if (!allowDevelopmentDefaults)
+            {
+                throw new InvalidOperationException("Admin seed password is not configured. Set AdminSeed__Password before running --seed-admin.");
+            }
+
+            password = DevelopmentAdminPassword;
         }
 
-        var adminExists = await db.Users.AnyAsync(user => user.Email == email);
-        if (adminExists)
+        var admin = await db.Users.SingleOrDefaultAsync(user => user.Email == email);
+        if (admin is null)
         {
-            Console.WriteLine($"Admin user already exists: {email}");
-            return;
-        }
+            admin = new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = string.Empty,
+                Role = "ADMIN"
+            };
 
-        var admin = new User
+            db.Users.Add(admin);
+        }
+        else
         {
-            Username = username,
-            Email = email,
-            PasswordHash = string.Empty,
-            Role = "ADMIN"
-        };
+            admin.Username = username;
+            admin.Role = "ADMIN";
+        }
 
         var passwordHasher = new PasswordHasher<User>();
         admin.PasswordHash = passwordHasher.HashPassword(admin, password);
 
-        db.Users.Add(admin);
         await db.SaveChangesAsync();
-        Console.WriteLine($"Admin user seeded: {email}");
+        Console.WriteLine($"Admin user ready: {email}");
     }
 }

@@ -18,6 +18,11 @@ builder.Services.AddDbContext<ShopDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
 
 var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) && builder.Environment.IsDevelopment())
+{
+    jwtKey = "shop-local-development-jwt-key-1234567890";
+}
+
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
     throw new InvalidOperationException("JWT key is not configured. Set Jwt__Key before running the API.");
@@ -48,8 +53,13 @@ var app = builder.Build();
 
 if (args.Contains("--seed-admin", StringComparer.OrdinalIgnoreCase))
 {
-    await DatabaseSeeder.SeedAdminAsync(app.Services);
+    await DatabaseSeeder.SeedAdminAsync(app.Services, app.Environment.IsDevelopment());
     return;
+}
+
+if (app.Environment.IsDevelopment())
+{
+    await DatabaseSeeder.SeedAdminAsync(app.Services, allowDevelopmentDefaults: true);
 }
 
 // Configure the HTTP request pipeline.
