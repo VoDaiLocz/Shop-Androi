@@ -22,5 +22,6 @@ object Routes {
     const val ADMIN_ADD_CATEGORY = "admin_add_category"
     const val ADMIN_UPDATE_CATEGORY = "admin_update_category"
     const val ADMIN_MANAGE_ORDER = "admin_manage_order"
+    const val ADMIN_MANAGE_USER = "admin_manage_user"
 
 }

@@ -1182,40 +1182,22 @@ Room đã được xóa hoàn toàn khỏi Android.
 Checkpoint tiếp theo là:
 
 ```text
-Checkpoint 24: Dọn Code Placeholder Chưa Có Luồng Thật
+Checkpoint 25: Final E2E Sau Khi Đồng Bộ Model
 ```
 
 Hành động dự kiến:
 
 ```text
-Dọn các file placeholder chưa có luồng thật như Payment, Review, Notification, Firebase stub và admin user trống nếu không được dùng.
+Build lại backend/Android và kiểm thử luồng chính sau khi đã xóa address book, chuẩn hóa model và dọn placeholder.
 ```
 
 File thay đổi:
 
 ```text
-app/src/main/java/com/example/shop/data/model/Payment.kt
-app/src/main/java/com/example/shop/data/model/Review.kt
-app/src/main/java/com/example/shop/data/model/Notification.kt
-app/src/main/java/com/example/shop/data/repository/PaymentRepository.kt
-app/src/main/java/com/example/shop/data/repository/ReviewRepository.kt
-app/src/main/java/com/example/shop/data/repository/NotificationRepository.kt
-app/src/main/java/com/example/shop/viewmodel/PaymentViewModel.kt
-app/src/main/java/com/example/shop/viewmodel/ReviewViewModel.kt
-app/src/main/java/com/example/shop/viewmodel/NotificationViewModel.kt
-app/src/main/java/com/example/shop/ui/payment/PaymentScreen.kt
-app/src/main/java/com/example/shop/ui/payment/AddPaymentScreen.kt
-app/src/main/java/com/example/shop/ui/review/ReviewScreen.kt
-app/src/main/java/com/example/shop/ui/review/MyReviewScreen.kt
-app/src/main/java/com/example/shop/ui/notification/NotificationScreen.kt
-app/src/main/java/com/example/shop/data/remote/firebase/FirebaseAuthService.kt
-app/src/main/java/com/example/shop/data/remote/firebase/FirestoreService.kt
-app/src/main/java/com/example/shop/admin/ui/user/ManageUserScreen.kt
-app/src/main/java/com/example/shop/admin/viewmodel/AdminUserViewModel.kt
 PROGRESS.md
 ```
 
-Chỉ khi user duyệt checkpoint 24, Codex mới dọn tiếp các placeholder này.
+Chỉ khi user duyệt checkpoint 25, Codex mới chạy final E2E và ghi lại kết quả.
 
 ## 14. Kế Hoạch Bổ Sung Sau Rà Soát 2026-05-10
 
@@ -1837,23 +1819,27 @@ Hoàn thành khi:
 - Order item có thể giữ ảnh snapshot từ backend.
 - Commit được push sau khi user review.
 
-### Checkpoint 24: Dọn Code Placeholder Chưa Có Luồng Thật
+### Checkpoint 24: Dọn Placeholder Và Làm Admin User Tối Giản
 
 Vấn đề hiện tại:
 
 - `Payment`, `Review`, `Notification` có model/viewmodel/repository hoặc screen nhưng chưa nối backend và UI còn placeholder.
 - `data/remote/firebase` còn stub dù dự án đã chốt REST API .NET.
-- `ManageUserScreen` và `AdminUserViewModel` đang trống.
+- `ManageUserScreen` và `AdminUserViewModel` đang trống, nhưng app admin cần tối thiểu có chức năng xem user và xóa user.
 
 Mục tiêu thực hiện:
 
 - Làm codebase dễ hiểu hơn.
 - Người đọc không nhầm rằng các tính năng này đã hoàn thiện.
-- Không xóa tính năng đang được route sử dụng thật nếu chưa kiểm tra.
+- Giữ phần admin user nhưng triển khai thật ở mức đơn giản nhất: xem danh sách user và xóa user thường.
+- Không làm thêm sửa user, đổi role, khóa tài khoản, tìm kiếm, phân trang nếu chưa cần.
 
 File dự kiến rà soát/thay đổi:
 
 ```text
+backend/ShopApi/Controllers/UsersController.cs
+app/src/main/java/com/example/shop/data/remote/api/UserApi.kt
+app/src/main/java/com/example/shop/data/repository/UserRepository.kt
 app/src/main/java/com/example/shop/data/model/Payment.kt
 app/src/main/java/com/example/shop/data/model/Review.kt
 app/src/main/java/com/example/shop/data/model/Notification.kt
@@ -1872,34 +1858,53 @@ app/src/main/java/com/example/shop/data/remote/firebase/FirebaseAuthService.kt
 app/src/main/java/com/example/shop/data/remote/firebase/FirestoreService.kt
 app/src/main/java/com/example/shop/admin/ui/user/ManageUserScreen.kt
 app/src/main/java/com/example/shop/admin/viewmodel/AdminUserViewModel.kt
+app/src/main/java/com/example/shop/admin/ui/dashboard/DashboardScreen.kt
 app/src/main/java/com/example/shop/navigation/MainNavGraph.kt
+app/src/main/java/com/example/shop/navigation/Routes.kt
+app/src/main/java/com/example/shop/di/AppModule.kt
 PROGRESS.md
 ```
 
 Hành động cụ thể:
 
 - Kiểm tra route nào thật sự dùng payment/review/notification/user admin.
-- Nếu không có route dùng: xóa file placeholder để code gọn.
-- Nếu có route nhưng chưa làm feature: đổi màn thành thông báo rõ ràng “Chức năng sẽ làm sau” hoặc gỡ khỏi navigation nếu không cần.
+- Xóa `Payment`, `Review`, `Notification` nếu chỉ là placeholder và chưa có luồng thật.
 - Xóa Firebase stub nếu không còn import/use ở đâu.
-- Build lại Android sau khi dọn.
+- Backend thêm `UsersController`.
+- `GET /api/users`: chỉ admin gọi được, trả danh sách `UserResponse`.
+- `DELETE /api/users/{id}`: chỉ admin gọi được, chỉ xóa user thường.
+- Không cho admin xóa chính mình.
+- Không cho xóa tài khoản `ADMIN`.
+- Không xóa user đã có đơn hàng để tránh mất lịch sử mua hàng.
+- Android thêm `UserApi`, `UserRepository`, `AdminUserViewModel`, `ManageUserScreen`.
+- Dashboard admin thêm thẻ `Người dùng`.
+- Navigation thêm route `ADMIN_MANAGE_USER`.
+- Build lại backend và Android sau khi làm.
 
 Quy tắc review:
 
 - Không xóa màn đang nằm trong flow chính như login, home, product, cart, checkout, order, admin product/category/order.
 - Chỉ xóa placeholder không có logic thật.
-- Nếu còn phân vân, giữ lại nhưng ghi rõ trong docs là phase sau.
+- Admin user giữ lại vì có yêu cầu thật: xem danh sách và xóa user.
+- Code phải gọn: không thêm service layer backend, không thêm chức năng ngoài phạm vi.
 
 Lệnh kiểm tra:
 
 ```powershell
-rg "Payment|Review|Notification|Firebase|ManageUser" app/src/main/java/com/example/shop
+dotnet build backend/ShopApi --nologo
+rg "Payment|Review|Notification|Firebase|ManageUser|UserApi" app/src/main/java/com/example/shop backend/ShopApi
 ./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
 ```
 
 Hoàn thành khi:
 
+- Backend có endpoint admin user tối giản.
+- Android admin mở được màn quản lý user.
+- Admin xem được danh sách user.
+- Admin xóa được user thường nếu user chưa có đơn hàng.
+- Admin không xóa được tài khoản admin hoặc chính mình.
 - Android build pass.
+- Backend build pass.
 - Không còn Firebase stub.
 - Placeholder không gây hiểu nhầm backend thiếu tính năng đã cam kết.
 - Commit được push sau khi user review.

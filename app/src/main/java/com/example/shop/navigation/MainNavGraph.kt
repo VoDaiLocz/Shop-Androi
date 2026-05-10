@@ -18,6 +18,7 @@ import com.example.shop.admin.ui.order.ManageOrderScreen
 import com.example.shop.admin.ui.product.AddProductScreen
 import com.example.shop.admin.ui.product.ManageProductScreen
 import com.example.shop.admin.ui.product.UpdateProductScreen
+import com.example.shop.admin.ui.user.ManageUserScreen
 import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
@@ -77,6 +78,7 @@ fun MainNavGraph(
                 onManageProducts = { navController.navigate(Routes.ADMIN_MANAGE_PRODUCT) },
                 onManageCategories = { navController.navigate(Routes.ADMIN_MANAGE_CATEGORY) },
                 onManageOrders = { navController.navigate(Routes.ADMIN_MANAGE_ORDER) },
+                onManageUsers = { navController.navigate(Routes.ADMIN_MANAGE_USER) },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.ADMIN_DASHBOARD) { inclusive = true }
@@ -141,6 +143,13 @@ fun MainNavGraph(
         //========================ADMIN ORDER=====================
         composable(Routes.ADMIN_MANAGE_ORDER) {
             ManageOrderScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        //========================ADMIN USER=====================
+        composable(Routes.ADMIN_MANAGE_USER) {
+            ManageUserScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

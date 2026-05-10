@@ -5,9 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ fun DashboardScreen(
     onManageProducts: () -> Unit,
     onManageCategories: () -> Unit,
     onManageOrders: () -> Unit,
+    onManageUsers: () -> Unit,
     onLogout: () -> Unit
 ) {
     Scaffold(
@@ -31,7 +33,7 @@ fun DashboardScreen(
                 title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Đăng xuất")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Đăng xuất")
                     }
                 }
             )
@@ -84,6 +86,14 @@ fun DashboardScreen(
                         icon = Icons.Default.ShoppingCart,
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         onClick =  onManageOrders
+                    )
+                }
+                item {
+                    AdminMenuCard(
+                        title = "Người dùng",
+                        icon = Icons.Default.Person,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        onClick = onManageUsers
                     )
                 }
             }

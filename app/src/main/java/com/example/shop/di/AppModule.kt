@@ -5,6 +5,7 @@ import com.example.shop.data.remote.api.CartApi
 import com.example.shop.data.remote.api.CategoryApi
 import com.example.shop.data.remote.api.OrderApi
 import com.example.shop.data.remote.api.ProductApi
+import com.example.shop.data.remote.api.UserApi
 import com.example.shop.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -66,5 +67,11 @@ object AppModule {
     @Singleton
     fun provideOrderApi(retrofit: Retrofit): OrderApi {
         return retrofit.create(OrderApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi {
+        return retrofit.create(UserApi::class.java)
     }
 }
