@@ -56,10 +56,22 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "Cannot delete admin account." });
         }
 
-        var hasOrders = await _db.Orders.AnyAsync(order => order.UserId == id);
-        if (hasOrders)
+        var orderIds = await _db.Orders
+            .Where(order => order.UserId == id)
+            .Select(order => order.Id)
+            .ToListAsync();
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        if (orderIds.Count > 0)
         {
-            return Conflict(new { message = "Cannot delete user because user has order history." });
+            await _db.OrderItems
+                .Where(item => orderIds.Contains(item.OrderId))
+                .ExecuteDeleteAsync();
+
+            await _db.Orders
+                .Where(order => order.UserId == id)
+                .ExecuteDeleteAsync();
         }
 
         await _db.CartItems
@@ -68,6 +80,7 @@ public class UsersController : ControllerBase
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return NoContent();
     }

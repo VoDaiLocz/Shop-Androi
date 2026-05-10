@@ -1875,7 +1875,7 @@ Hành động cụ thể:
 - `DELETE /api/users/{id}`: chỉ admin gọi được, chỉ xóa user thường.
 - Không cho admin xóa chính mình.
 - Không cho xóa tài khoản `ADMIN`.
-- Không xóa user đã có đơn hàng để tránh mất lịch sử mua hàng.
+- Nếu user đã có đơn hàng, xóa luôn `OrderItems`, `Orders`, `CartItems`, rồi xóa user trong một transaction.
 - Android thêm `UserApi`, `UserRepository`, `AdminUserViewModel`, `ManageUserScreen`.
 - Dashboard admin thêm thẻ `Người dùng`.
 - Navigation thêm route `ADMIN_MANAGE_USER`.
@@ -1901,7 +1901,7 @@ Hoàn thành khi:
 - Backend có endpoint admin user tối giản.
 - Android admin mở được màn quản lý user.
 - Admin xem được danh sách user.
-- Admin xóa được user thường nếu user chưa có đơn hàng.
+- Admin xóa được user thường, kể cả user đã có đơn hàng.
 - Admin không xóa được tài khoản admin hoặc chính mình.
 - Android build pass.
 - Backend build pass.
