@@ -30,7 +30,6 @@ fun UpdateProductScreen(
     var name by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var imageUrl by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -53,7 +52,6 @@ fun UpdateProductScreen(
             name = product.name
             price = product.price.toString()
             description = product.description
-            imageUrl = product.imageUrl ?: ""
             quantity = product.quantity.toString()
             selectedCategoryId = product.categoryId
 
@@ -151,13 +149,6 @@ fun UpdateProductScreen(
                     minLines = 3
                 )
 
-                OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = { imageUrl = it },
-                    label = { Text("Link hình ảnh (URL)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
                 OutlinedButton(
                     onClick = { imagePicker.launch("image/*") },
                     modifier = Modifier.fillMaxWidth()
@@ -190,7 +181,7 @@ fun UpdateProductScreen(
                                     name = name,
                                     price = productPrice,
                                     description = description,
-                                    imageUrl = imageUrl,
+                                    imageUrl = currentProduct?.imageUrl.orEmpty(),
                                     quantity = productQuantity,
                                     categoryId = selectedCategoryId,
                                     imageUri = imageUri
