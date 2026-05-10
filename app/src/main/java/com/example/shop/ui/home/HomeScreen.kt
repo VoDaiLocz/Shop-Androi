@@ -95,6 +95,7 @@ fun HomeScreen(
                     price = "${product.price} VNĐ",
                     oldPrice = "",
                     discount = "",
+                    imageUrl = product.imageUrl,
                     onClick = { onOpenProduct(product.id.toString()) }
                 )
             }

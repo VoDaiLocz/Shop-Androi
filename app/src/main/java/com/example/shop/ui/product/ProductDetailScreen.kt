@@ -11,12 +11,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.shop.R
 import com.example.shop.admin.viewmodel.AdminProductViewModel
 import com.example.shop.data.model.CartItem
+import com.example.shop.utils.Constants
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.CartViewModel
 
@@ -62,8 +67,20 @@ fun ProductDetailScreen(
                         .padding(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.LightGray)
                 ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Text("Ảnh sản phẩm", color = Color.Gray)
+                    val resolvedImageUrl = Constants.toBackendImageUrl(item.imageUrl)
+                    if (resolvedImageUrl.isBlank()) {
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Text("Chưa có ảnh sản phẩm", color = Color.Gray)
+                        }
+                    } else {
+                        AsyncImage(
+                            model = resolvedImageUrl,
+                            contentDescription = item.name,
+                            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                            error = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
                 }
 
@@ -118,7 +135,7 @@ fun ProductDetailScreen(
                                     productName = item.name,
                                     price = item.price,
                                     quantity = 1, // Mặc định thêm 1 sản phẩm
-                                    imageUrl = "" // Bạn có thể thêm item.imageUrl nếu có
+                                    imageUrl = item.imageUrl
                                 )
                                 // Gọi ViewModel để thêm sản phẩm vào cart qua backend.
                                 cartViewModel.addToCart(newItem)

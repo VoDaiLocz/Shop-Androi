@@ -7,10 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
 import com.example.shop.R
+import com.example.shop.utils.Constants
 
 @Composable
 fun ProductItem(
@@ -18,6 +20,7 @@ fun ProductItem(
     price: String,
     oldPrice: String,
     discount: String,
+    imageUrl: String,
     onClick: () -> Unit
 ) {
 
@@ -29,15 +32,27 @@ fun ProductItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-
-            // IMAGE
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-            )
+            val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
+            if (resolvedImageUrl.isBlank()) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+            } else {
+                AsyncImage(
+                    model = resolvedImageUrl,
+                    contentDescription = name,
+                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                )
+            }
 
             Column(modifier = Modifier.padding(8.dp)) {
 

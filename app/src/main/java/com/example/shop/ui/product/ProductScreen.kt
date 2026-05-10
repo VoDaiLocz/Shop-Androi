@@ -77,6 +77,7 @@ fun ProductScreen(
                         price = "${product.price} VNĐ",
                         oldPrice = "",
                         discount = "",
+                        imageUrl = product.imageUrl,
                         onClick = { onClickItem(product.id) }
                     )
                 }
