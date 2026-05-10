@@ -6,7 +6,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings // Thêm icon Settings
 import androidx.compose.material3.*
@@ -26,7 +25,6 @@ import com.example.shop.viewmodel.AuthViewModel
 @Composable
 fun ProfileScreen(
     onNavigateToOrders: () -> Unit,
-    onNavigateToAddresses: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onLogout: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
@@ -98,18 +96,6 @@ fun ProfileScreen(
                 Icon(Icons.Default.History, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Lịch sử đơn hàng")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onNavigateToAddresses,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Icon(Icons.Default.LocationOn, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Địa chỉ của tôi")
             }
 
             Spacer(modifier = Modifier.height(12.dp))

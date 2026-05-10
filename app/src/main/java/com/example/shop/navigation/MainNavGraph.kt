@@ -18,8 +18,6 @@ import com.example.shop.admin.ui.order.ManageOrderScreen
 import com.example.shop.admin.ui.product.AddProductScreen
 import com.example.shop.admin.ui.product.ManageProductScreen
 import com.example.shop.admin.ui.product.UpdateProductScreen
-import com.example.shop.ui.address.AddAddressScreen
-import com.example.shop.ui.address.AddressScreen
 import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
@@ -31,7 +29,6 @@ import com.example.shop.ui.product.ProductScreen
 import com.example.shop.ui.profile.ProfileScreen
 import com.example.shop.ui.profile.SettingScreen
 import com.example.shop.viewmodel.AuthViewModel
-import com.example.shop.viewmodel.ProductViewModel
 
 @Composable
 fun MainNavGraph(
@@ -208,7 +205,6 @@ fun MainNavGraph(
         composable(Routes.PROFILE) {
             ProfileScreen(
                 onNavigateToOrders = { navController.navigate(Routes.ORDER) },
-                onNavigateToAddresses = { navController.navigate(Routes.ADDRESS_LIST) },
                 onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
                 onLogout = {
                     navController.navigate(Routes.LOGIN) {
@@ -220,21 +216,6 @@ fun MainNavGraph(
 
         composable(Routes.SETTINGS) {
             SettingScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-
-
-        // --- ADDRESS SCREENS ---
-        composable(Routes.ADDRESS_LIST) {
-            AddressScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddAddress = { navController.navigate(Routes.ADD_ADDRESS) }
-            )
-        }
-
-        composable(Routes.ADD_ADDRESS) {
-            AddAddressScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

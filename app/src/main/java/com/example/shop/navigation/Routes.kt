@@ -12,8 +12,6 @@ object Routes {
     const val ORDER = "order"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"
-    const val ADDRESS_LIST = "address_list"
-    const val ADD_ADDRESS = "add_address"
 
     // Thêm các route admin
     const val ADMIN_DASHBOARD = "admin_dashboard"
