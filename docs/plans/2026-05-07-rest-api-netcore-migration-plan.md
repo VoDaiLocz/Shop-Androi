@@ -1,7 +1,7 @@
 # Kế Hoạch Thực Thi: Chuyển Android Shop Từ Room Sang ASP.NET Core REST API
 
 Ngày tạo: 2026-05-07  
-Trạng thái: Đã chốt hướng triển khai, chờ thực thi theo checkpoint  
+Trạng thái: Đang triển khai theo checkpoint; backend core đã xong, Android core đã nối API, còn hoàn thiện ảnh product và xử lý lỗi admin
 Phạm vi: Backend ASP.NET Core + MySQL Code First + nối Android bằng Retrofit
 
 ## 1. Tóm Tắt Quyết Định Đã Chốt
@@ -27,7 +27,7 @@ Phạm vi: Backend ASP.NET Core + MySQL Code First + nối Android bằng Retrof
 | Vượt tồn kho | Backend từ chối đặt hàng |
 | API response | Trả object trực tiếp, dùng HTTP status code chuẩn |
 | Nối Android | Nối từng phần |
-| Room | Xóa khi bắt đầu nối API |
+| Room | Đã xóa hoàn toàn khỏi Android sau checkpoint cleanup |
 | Emulator gọi backend | Dùng `http://10.0.2.2:<port>` |
 | Dev CORS/HTTP | Cho phép dev origin rộng, dùng HTTP local |
 
@@ -35,7 +35,7 @@ Phạm vi: Backend ASP.NET Core + MySQL Code First + nối Android bằng Retrof
 
 Mục tiêu là thay nguồn dữ liệu chính của Android app từ Room local sang backend REST API.
 
-Luồng hiện tại:
+Luồng cũ trước khi migrate:
 
 ```text
 Android UI
@@ -76,6 +76,8 @@ Android sẽ chịu trách nhiệm:
 - Gửi token qua header `Authorization`.
 - Hiển thị loading/error/success.
 - Không tự xử lý database chính bằng Room.
+- Hiển thị ảnh product từ `imageUrl` backend trả về.
+- Upload ảnh product từ màn admin ở bước hoàn thiện sau.
 
 ## 3. Nguyên Tắc Triển Khai
 
@@ -700,31 +702,33 @@ Những điểm lệch cần xử lý khi nối Android:
 | Category image | `imageUrl: String` | `string? ImageUrl` | Backend DTO trả `imageUrl = ""` nếu null, hoặc Android đổi nullable |
 | Cart product id | `productId: String` | `ProductId: int` | Khi nối API, đổi Android API model sang `Int` |
 | Cart product info | Android lưu `productName`, `price`, `imageUrl` | Backend DB không lưu trong cart | `CartItemResponse` join từ product và trả đủ info |
-| Order id | `orderId` | `Id` | `OrderResponse` trả field `orderId` để Android ít sửa |
-| Order date | `Long` milliseconds | `DateTime` | `OrderResponse` trả `orderDate` dạng milliseconds |
-| Order item id | `orderItemId` | `Id` | `OrderItemResponse` trả field `orderItemId` |
+| Order id | `orderId` trong app model | `Id` | API trả `id`; Android DTO map sang `Order.orderId` |
+| Order date | `Long` milliseconds trong app model | `DateTime` | API trả chuỗi ISO; Android DTO parse sang milliseconds |
+| Order item id | `orderItemId` trong app model | `Id` | API trả `id`; Android DTO map sang `OrderItem.orderItemId` |
 | Order item image | Android hiện chưa có | Backend có `ImageUrl` snapshot | Có thể thêm `imageUrl` vào Android khi làm order history |
 
-DTO response dự kiến để Android dễ dùng:
+DTO response thực tế để Android parse:
 
 ```json
 {
-  "orderId": 1,
+  "id": 1,
   "userId": 2,
-  "orderDate": 1715000000000,
+  "username": "user1",
+  "orderDate": "2026-05-07T13:45:20.1234567Z",
   "totalPrice": 2500000,
   "status": "Pending",
   "address": "123 Nguyen Trai",
   "phoneNumber": "0909123456",
+  "paymentMethod": "COD",
   "items": [
     {
-      "orderItemId": 1,
-      "orderId": 1,
+      "id": 1,
       "productId": 10,
       "productName": "Sofa",
       "quantity": 1,
       "price": 2500000,
-      "imageUrl": "/uploads/products/sofa.jpg"
+      "imageUrl": "/uploads/products/sofa.jpg",
+      "lineTotal": 2500000
     }
   ]
 }
@@ -1121,7 +1125,7 @@ Luồng test cuối:
 Admin login
 Admin tạo category
 Admin tạo product
-Admin upload ảnh product
+Admin upload ảnh product bằng backend HTTP endpoint
 User register
 User login
 User xem product
@@ -1161,7 +1165,9 @@ Backend ASP.NET Core chạy được.
 MySQL có schema từ Code First migration.
 JWT login hoạt động.
 Admin quản lý category/product được.
-Upload ảnh product hoạt động.
+Backend upload ảnh product hoạt động.
+Android admin upload ảnh product từ app.
+Android hiển thị ảnh product từ backend.
 User xem product được.
 User quản lý cart được.
 User đặt hàng COD được.
@@ -1169,7 +1175,7 @@ Backend tự tính tổng tiền.
 Backend trừ tồn kho.
 Admin cập nhật trạng thái order được.
 Android gọi backend bằng Retrofit.
-Room không còn là nguồn dữ liệu chính.
+Room đã được xóa hoàn toàn khỏi Android.
 ```
 
 ## 13. Checkpoint Tiếp Theo Chờ Duyệt
@@ -1177,20 +1183,127 @@ Room không còn là nguồn dữ liệu chính.
 Checkpoint tiếp theo là:
 
 ```text
-Checkpoint 0: Kiểm Tra Môi Trường
+Checkpoint 16: Hiển Thị Ảnh Product Trên Android
 ```
 
 Hành động dự kiến:
 
-```powershell
-dotnet --info
-Get-ChildItem
+```text
+Thêm hiển thị ảnh product từ imageUrl backend trong danh sách và chi tiết sản phẩm.
 ```
 
 File thay đổi:
 
 ```text
-Không có
+app/build.gradle.kts
+app/src/main/java/com/example/shop/utils/Constants.kt
+app/src/main/java/com/example/shop/ui/components/ProductItem.kt
+app/src/main/java/com/example/shop/ui/home/HomeScreen.kt
+app/src/main/java/com/example/shop/ui/product/ProductScreen.kt
+app/src/main/java/com/example/shop/ui/product/ProductDetailScreen.kt
 ```
 
-Chỉ khi user duyệt checkpoint 0, Codex mới chạy lệnh kiểm tra.
+Chỉ khi user duyệt checkpoint 16, Codex mới sửa code Android.
+
+## 14. Kế Hoạch Bổ Sung Sau Rà Soát 2026-05-10
+
+Rà soát ngày 2026-05-10 cho thấy backend core đã đủ và code backend đang giữ mức đơn giản phù hợp. Phần cần làm tiếp chủ yếu nằm ở Android integration và trải nghiệm admin.
+
+### Checkpoint 15: Đồng Bộ Docs Với Code Hiện Tại
+
+Mục tiêu: tài liệu phản ánh đúng trạng thái code hiện tại.
+
+Hành động:
+
+- Cập nhật trạng thái Room: đã xóa hoàn toàn khỏi Android.
+- Cập nhật mapping order: API trả `id`, `orderDate` dạng chuỗi ISO; Android DTO tự map sang model hiện có.
+- Ghi rõ backend upload ảnh đã có, Android upload ảnh từ app chưa hoàn thiện.
+- Ghi rõ checkpoint tiếp theo là hiển thị ảnh product trên Android.
+
+Hoàn thành khi:
+
+- Docs không còn mô tả sai contract hiện tại.
+- `PROGRESS.md` có dòng Checkpoint 15.
+
+### Checkpoint 16: Hiển Thị Ảnh Product Trên Android
+
+Mục tiêu: product list và product detail hiển thị ảnh từ `imageUrl` backend.
+
+Hành động:
+
+- Thêm thư viện ảnh đơn giản cho Compose.
+- Chuẩn hóa URL ảnh local: `/uploads/...` thành `http://10.0.2.2:5053/uploads/...`.
+- Sửa `ProductItem` để nhận và hiển thị `imageUrl`.
+- Sửa `HomeScreen`, `ProductScreen`, `ProductDetailScreen` để truyền ảnh.
+
+Hoàn thành khi:
+
+- Android build pass.
+- Product có `imageUrl` hiển thị ảnh trong danh sách và chi tiết.
+
+### Checkpoint 17: Làm Admin Product Gọn Và Đúng Logic
+
+Mục tiêu: admin tạo/sửa/xóa product không nuốt lỗi API.
+
+Hành động:
+
+- Cho `ProductRepository` trả kết quả thành công/thất bại.
+- Refresh danh sách product sau create/update/delete thành công.
+- UI chỉ quay về hoặc cập nhật khi API thành công.
+- Nếu thất bại, hiển thị lỗi đơn giản.
+
+Hoàn thành khi:
+
+- Android build pass.
+- Admin biết thao tác product thành công hay thất bại.
+
+### Checkpoint 18: Upload Ảnh Product Từ Android
+
+Mục tiêu: admin chọn ảnh trong app và upload lên endpoint backend đã có.
+
+Hành động:
+
+- Thêm multipart endpoint vào `ProductApi`.
+- Thêm chọn ảnh trong màn add/update product.
+- Flow đơn giản: tạo/sửa product trước, sau đó upload ảnh nếu có chọn file.
+- Không làm crop, preview nâng cao, cloud storage.
+
+Hoàn thành khi:
+
+- Android build pass.
+- Ảnh được lưu trong `backend/ShopApi/wwwroot/uploads/products`.
+- Product sau upload hiển thị ảnh từ backend.
+
+### Checkpoint 19: Rà Soát Backend Tối Giản
+
+Mục tiêu: giữ backend gọn, không over-engineer.
+
+Hành động:
+
+- Rà soát controller Auth/Category/Product/Cart/Order.
+- Chỉ dọn điểm nhỏ nếu giúp code dễ hiểu hơn.
+- Không thêm service/repository pattern riêng nếu chưa cần.
+
+Hoàn thành khi:
+
+- `dotnet build backend/ShopApi --nologo` pass.
+- `dotnet list backend/ShopApi package --vulnerable --include-transitive` không báo vulnerable package.
+
+### Checkpoint 20: Final End-To-End
+
+Mục tiêu: xác nhận toàn bộ flow chính chạy được.
+
+Luồng test:
+
+- Register/login.
+- Xem category/product.
+- Admin thêm product có ảnh.
+- User add cart.
+- Checkout tạo order COD.
+- Admin đổi status order.
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Android build pass.
+- App chạy được trên emulator với backend local.
