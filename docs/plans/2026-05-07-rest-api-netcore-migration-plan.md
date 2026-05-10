@@ -1,7 +1,7 @@
 # Kế Hoạch Thực Thi: Chuyển Android Shop Từ Room Sang ASP.NET Core REST API
 
 Ngày tạo: 2026-05-07  
-Trạng thái: Đang triển khai theo checkpoint; backend core đã xong, Android core đã nối API, còn hoàn thiện ảnh product và xử lý lỗi admin
+Trạng thái: Checkpoint 1-20 đã hoàn thành; đang rà soát phần model Android còn lệch/backend còn thiếu để hoàn thiện ứng dụng
 Phạm vi: Backend ASP.NET Core + MySQL Code First + nối Android bằng Retrofit
 
 ## 1. Tóm Tắt Quyết Định Đã Chốt
@@ -1183,27 +1183,23 @@ Room đã được xóa hoàn toàn khỏi Android.
 Checkpoint tiếp theo là:
 
 ```text
-Checkpoint 16: Hiển Thị Ảnh Product Trên Android
+Checkpoint 21: Rà Soát Và Khóa Contract Model Android - Backend
 ```
 
 Hành động dự kiến:
 
 ```text
-Thêm hiển thị ảnh product từ imageUrl backend trong danh sách và chi tiết sản phẩm.
+Đối chiếu toàn bộ model Android với backend entity/DTO/API, chốt cái nào cần backend, cái nào là model ghép, cái nào là code dư cần dọn.
 ```
 
 File thay đổi:
 
 ```text
-app/build.gradle.kts
-app/src/main/java/com/example/shop/utils/Constants.kt
-app/src/main/java/com/example/shop/ui/components/ProductItem.kt
-app/src/main/java/com/example/shop/ui/home/HomeScreen.kt
-app/src/main/java/com/example/shop/ui/product/ProductScreen.kt
-app/src/main/java/com/example/shop/ui/product/ProductDetailScreen.kt
+docs/plans/2026-05-07-rest-api-netcore-migration-plan.md
+PROGRESS.md
 ```
 
-Chỉ khi user duyệt checkpoint 16, Codex mới sửa code Android.
+Chỉ khi user duyệt checkpoint 21, Codex mới cập nhật docs review cuối và sang các phase code tiếp theo.
 
 ## 14. Kế Hoạch Bổ Sung Sau Rà Soát 2026-05-10
 
@@ -1590,4 +1586,474 @@ Hoàn thành khi:
 - Backend build pass.
 - Android build pass.
 - App chạy được trên emulator với backend local.
+- Commit final được push sau khi user review.
+
+## 15. Rà Soát Sau Checkpoint 20: Model Android Nhiều Hơn Backend
+
+Ngày rà soát: 2026-05-10
+
+### 15.1 Kết Luận Review
+
+Backend hiện đã có đủ nhóm core cho luồng bán hàng chính:
+
+```text
+User
+Category
+Product
+CartItem
+Order
+OrderItem
+```
+
+Android hiện có thêm một số model ngoài core:
+
+```text
+Address
+Payment
+Review
+Notification
+OrderWithItems
+```
+
+Không phải model Android nào cũng cần tạo bảng backend. Kết luận đúng là:
+
+- `Address` cần backend thật vì màn địa chỉ đang dùng trong app và hiện chỉ lưu RAM.
+- `OrderWithItems` không cần backend entity riêng vì chỉ là model ghép để UI hiển thị order kèm items.
+- `Payment` chưa cần backend riêng nếu ứng dụng vẫn chốt thanh toán COD.
+- `Review` chưa cần backend nếu chưa triển khai màn đánh giá sản phẩm thật.
+- `Notification` chưa cần backend nếu màn thông báo vẫn chỉ là placeholder.
+
+### 15.2 Bảng Đối Chiếu Trạng Thái Model
+
+| Android model | Backend hiện tại | Đánh giá | Hành động |
+|---|---|---|---|
+| `User` | Có `User`, `AuthDtos`, `AuthController` | Đủ cho login/register/me | Giữ |
+| `Category` | Có `Category`, `CategoryDtos`, `CategoriesController` | Đủ cho admin/user | Giữ |
+| `Product` | Có `Product`, `ProductDtos`, `ProductsController` | Đủ, đã có upload ảnh | Giữ |
+| `CartItem` | Có `CartItem`, `CartDtos`, `CartController` | Chạy được nhưng Android `productId` đang là `String` | Chuẩn hóa Android `productId` thành `Int` |
+| `Order` | Có `Order`, `OrderDtos`, `OrdersController` | Đủ cho checkout/history/admin status | Giữ |
+| `OrderItem` | Có `OrderItem`, `OrderItemResponse` | Backend có `imageUrl`, Android model chưa giữ | Thêm `imageUrl` nếu UI order/cart cần hiển thị ảnh |
+| `OrderWithItems` | Không có entity riêng | Đúng, đây là model ghép bên Android | Giữ |
+| `Address` | Chưa có | Thiếu thật vì đang có màn address | Thêm API address đơn giản |
+| `Payment` | Chỉ có `PaymentMethod` trong `Order` | Đủ nếu COD only | Dọn placeholder hoặc để phase sau |
+| `Review` | Chưa có | Chưa cần nếu chưa làm đánh giá thật | Dọn placeholder hoặc để phase sau |
+| `Notification` | Chưa có | Chưa cần nếu chưa làm thông báo thật | Dọn placeholder hoặc để phase sau |
+
+### 15.3 Vấn Đề Đang Tồn Tại
+
+1. `AddressRepository` hiện lưu bằng `MutableStateFlow` trong RAM. Khi app bị kill hoặc login lại, địa chỉ mất.
+2. `CartItem.productId` bên Android là `String`, trong khi backend và API dùng `int`. Code phải ép kiểu qua lại.
+3. `OrderItemResponse` có `imageUrl` nhưng Android `OrderItem` chưa có field này, làm lịch sử đơn hàng khó hiển thị ảnh sản phẩm.
+4. Các file `Payment`, `Review`, `Notification` hiện phần lớn là placeholder, dễ làm người đọc tưởng backend còn thiếu nhiều tính năng.
+5. `data/remote/firebase` còn stub `FirebaseAuthService` và `FirestoreService`, không còn phù hợp với quyết định dùng ASP.NET Core REST API.
+6. `ManageUserScreen` và `AdminUserViewModel` đang trống; nếu admin dashboard không dùng thì nên dọn hoặc ghi rõ chưa triển khai.
+
+### 15.4 Nguyên Tắc Hoàn Thiện Từ Giai Đoạn Này
+
+- Ưu tiên sửa phần đang ảnh hưởng luồng thật trước.
+- Chỉ tạo backend cho model đang có UI/luồng nghiệp vụ thật.
+- Giữ backend theo kiểu controller + DbContext khi cách này vẫn rõ và ít file.
+- Mỗi phase chỉ xử lý một nhóm vấn đề để dễ review.
+- Mỗi phase xong phải build, cập nhật `PROGRESS.md`, commit và push.
+
+## 16. Phase Hoàn Thiện Sau Checkpoint 20
+
+### Checkpoint 21: Rà Soát Và Khóa Contract Model Android - Backend
+
+Vấn đề hiện tại:
+
+- Android có nhiều model hơn backend nên dễ hiểu nhầm là backend thiếu toàn bộ.
+- Chưa có bảng review chính thức sau checkpoint 20 để chốt model nào giữ, model nào thêm API, model nào dọn.
+
+Mục tiêu thực hiện:
+
+- Tạo một bản contract rõ ràng giữa Android và backend.
+- Chốt thứ tự phase hoàn thiện tiếp theo.
+- Không sửa code trong checkpoint này.
+
+File thay đổi:
+
+```text
+docs/plans/2026-05-07-rest-api-netcore-migration-plan.md
+PROGRESS.md
+```
+
+Hành động cụ thể:
+
+- Ghi bảng đối chiếu Android model với backend entity/DTO/API.
+- Ghi rõ `Address` là phần backend còn thiếu thật.
+- Ghi rõ `Payment`, `Review`, `Notification` đang là placeholder nếu chưa làm feature.
+- Ghi rõ `CartItem.productId` cần chuẩn hóa từ `String` sang `Int`.
+- Ghi rõ `OrderItem.imageUrl` cần bổ sung nếu muốn lịch sử đơn hàng hiển thị ảnh.
+- Ghi phase 22-26 để user review từng bước.
+
+Tiêu chí review:
+
+- Người đọc nhìn docs biết ngay backend thiếu gì thật.
+- Không còn cảm giác “Android nhiều model nên backend phải tạo hết”.
+- Phase tiếp theo đủ cụ thể để bắt đầu code từng bước.
+
+Lệnh kiểm tra:
+
+```powershell
+git diff -- docs/plans/2026-05-07-rest-api-netcore-migration-plan.md PROGRESS.md
+```
+
+Hoàn thành khi:
+
+- Docs được cập nhật rõ ràng.
+- `PROGRESS.md` có log checkpoint 21.
+- Commit docs được push sau khi user review.
+
+### Checkpoint 22: Thêm Address API Backend Đơn Giản
+
+Vấn đề hiện tại:
+
+- Android có màn danh sách địa chỉ và thêm địa chỉ.
+- `AddressRepository` đang lưu địa chỉ trong RAM, không bền dữ liệu.
+- Backend chưa có model/API address.
+
+Mục tiêu thực hiện:
+
+- Đưa address book về backend REST API.
+- Giữ code backend đơn giản: một model, một DTO file, một controller.
+- Address thuộc user đăng nhập, không nhận `userId` từ Android.
+
+File dự kiến thay đổi:
+
+```text
+backend/ShopApi/Models/Address.cs
+backend/ShopApi/Dtos/AddressDtos.cs
+backend/ShopApi/Controllers/AddressesController.cs
+backend/ShopApi/Data/ShopDbContext.cs
+backend/ShopApi/Migrations/<timestamp>_AddAddresses.cs
+backend/ShopApi/Migrations/ShopDbContextModelSnapshot.cs
+PROGRESS.md
+```
+
+API dự kiến:
+
+```text
+GET    /api/addresses
+POST   /api/addresses
+DELETE /api/addresses/{id}
+PUT    /api/addresses/{id}/default
+```
+
+Request tạo address:
+
+```json
+{
+  "name": "Nhà riêng",
+  "phoneNumber": "0909123456",
+  "detail": "123 Nguyễn Trãi",
+  "city": "TP.HCM",
+  "isDefault": true
+}
+```
+
+Response address:
+
+```json
+{
+  "id": 1,
+  "name": "Nhà riêng",
+  "phoneNumber": "0909123456",
+  "detail": "123 Nguyễn Trãi",
+  "city": "TP.HCM",
+  "isDefault": true
+}
+```
+
+Hành động cụ thể:
+
+- Tạo `Address` entity có `Id`, `UserId`, `Name`, `PhoneNumber`, `Detail`, `City`, `IsDefault`, `CreatedAt`.
+- Thêm `DbSet<Address>` vào `ShopDbContext`.
+- Cấu hình quan hệ `User` - `Address`.
+- Tạo DTO request/response.
+- Tạo `AddressesController` có `[Authorize]`.
+- `GET /api/addresses`: trả địa chỉ của user từ JWT.
+- `POST /api/addresses`: tạo địa chỉ cho user từ JWT.
+- `DELETE /api/addresses/{id}`: chỉ xóa địa chỉ của chính user.
+- `PUT /api/addresses/{id}/default`: set một địa chỉ mặc định, các địa chỉ khác của user thành không mặc định.
+- Tạo migration và update database.
+
+Validation tối thiểu:
+
+- `name` không rỗng.
+- `phoneNumber` không rỗng, độ dài hợp lý.
+- `detail` không rỗng.
+- `city` không rỗng.
+- Không cho user thao tác địa chỉ của user khác.
+
+Lệnh kiểm tra:
+
+```powershell
+dotnet build backend/ShopApi --nologo
+dotnet ef migrations add AddAddresses --project backend/ShopApi
+dotnet ef database update --project backend/ShopApi
+```
+
+Kiểm tra thủ công:
+
+```text
+1. Login user lấy JWT.
+2. POST /api/addresses tạo địa chỉ.
+3. GET /api/addresses thấy địa chỉ vừa tạo.
+4. PUT /api/addresses/{id}/default set mặc định.
+5. DELETE /api/addresses/{id} xóa được địa chỉ của chính user.
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Migration chạy được.
+- Address API hoạt động bằng JWT.
+- Commit được push sau khi user review.
+
+### Checkpoint 23: Nối Android Address Sang Backend
+
+Vấn đề hiện tại:
+
+- Backend sau checkpoint 22 sẽ có Address API.
+- Android vẫn đang dùng `AddressRepository` in-memory.
+- UI address hiện quay lại ngay sau khi bấm lưu, chưa biết API thành công hay thất bại.
+
+Mục tiêu thực hiện:
+
+- Android address dùng Retrofit gọi backend.
+- Địa chỉ không bị mất sau khi tắt app.
+- UI báo lỗi đơn giản nếu lưu/xóa thất bại.
+
+File dự kiến thay đổi:
+
+```text
+app/src/main/java/com/example/shop/data/remote/api/AddressApi.kt
+app/src/main/java/com/example/shop/data/remote/dto/AddressDtos.kt
+app/src/main/java/com/example/shop/data/repository/AddressRepository.kt
+app/src/main/java/com/example/shop/di/AppModule.kt
+app/src/main/java/com/example/shop/viewmodel/AddressViewModel.kt
+app/src/main/java/com/example/shop/ui/address/AddressScreen.kt
+app/src/main/java/com/example/shop/ui/address/AddAddressScreen.kt
+PROGRESS.md
+```
+
+Hành động cụ thể:
+
+- Thêm `AddressApi`.
+- Thêm `AddressDtos` và mapper sang Android `Address`.
+- Sửa `AppModule` để provide `AddressApi`.
+- Sửa `AddressRepository`:
+  - Bỏ `MutableStateFlow` in-memory.
+  - `refreshAddresses()` gọi `GET /api/addresses`.
+  - `addAddress()` gọi `POST /api/addresses`.
+  - `deleteAddress()` gọi `DELETE /api/addresses/{id}`.
+  - `setAsDefault()` gọi `PUT /api/addresses/{id}/default`.
+- Sửa `AddressViewModel`:
+  - Có loading/error tối giản.
+  - Chỉ navigate back khi add thành công.
+- Sửa `AddressScreen`:
+  - Load danh sách từ backend.
+  - Xóa địa chỉ rồi refresh.
+- Sửa `AddAddressScreen`:
+  - Không quay về nếu API fail.
+  - Hiển thị lỗi text đơn giản.
+
+Lệnh kiểm tra:
+
+```powershell
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Kiểm tra thủ công:
+
+```text
+1. Chạy backend.
+2. Login user trên emulator.
+3. Mở Profile > Địa chỉ.
+4. Thêm địa chỉ.
+5. Tắt/mở lại app hoặc reload màn địa chỉ.
+6. Địa chỉ vẫn còn vì lấy từ backend.
+```
+
+Hoàn thành khi:
+
+- Android build pass.
+- Address list/add/delete dùng backend.
+- Commit được push sau khi user review.
+
+### Checkpoint 24: Chuẩn Hóa Model Android Đang Lệch Contract
+
+Vấn đề hiện tại:
+
+- `CartItem.productId` bên Android là `String`, trong khi backend/API là `Int`.
+- `OrderItem` Android chưa có `imageUrl`, trong khi backend trả `imageUrl`.
+- Một số comment cũ còn ghi `Database` sau khi đã bỏ Room.
+
+Mục tiêu thực hiện:
+
+- Android model khớp REST API hơn.
+- Giảm ép kiểu và comment gây hiểu nhầm.
+- Không đổi backend nếu API hiện tại đã đúng.
+
+File dự kiến thay đổi:
+
+```text
+app/src/main/java/com/example/shop/data/model/CartItem.kt
+app/src/main/java/com/example/shop/data/model/OrderItem.kt
+app/src/main/java/com/example/shop/data/remote/dto/CartDtos.kt
+app/src/main/java/com/example/shop/data/remote/dto/OrderDtos.kt
+app/src/main/java/com/example/shop/data/repository/CartRepository.kt
+app/src/main/java/com/example/shop/viewmodel/CartViewModel.kt
+app/src/main/java/com/example/shop/ui/cart/CartScreen.kt
+app/src/main/java/com/example/shop/ui/order/OrderScreen.kt
+PROGRESS.md
+```
+
+Hành động cụ thể:
+
+- Đổi `CartItem.productId` từ `String` sang `Int`.
+- Xóa các đoạn `toString()` và `toIntOrNull()` không cần thiết.
+- Thêm `imageUrl: String = ""` vào `OrderItem`.
+- Map `OrderItemResponse.imageUrl` sang `OrderItem.imageUrl`.
+- Nếu màn cart/order có chỗ ảnh placeholder, cân nhắc dùng `imageUrl` đã có.
+- Dọn comment cũ nói về `Database` nếu thực tế đang dùng API.
+
+Lệnh kiểm tra:
+
+```powershell
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Hoàn thành khi:
+
+- Android build pass.
+- Không còn ép kiểu `productId` String/Int trong cart.
+- Order item có thể giữ ảnh snapshot từ backend.
+- Commit được push sau khi user review.
+
+### Checkpoint 25: Dọn Code Placeholder Chưa Có Luồng Thật
+
+Vấn đề hiện tại:
+
+- `Payment`, `Review`, `Notification` có model/viewmodel/repository hoặc screen nhưng chưa nối backend và UI còn placeholder.
+- `data/remote/firebase` còn stub dù dự án đã chốt REST API .NET.
+- `ManageUserScreen` và `AdminUserViewModel` đang trống.
+
+Mục tiêu thực hiện:
+
+- Làm codebase dễ hiểu hơn.
+- Người đọc không nhầm rằng các tính năng này đã hoàn thiện.
+- Không xóa tính năng đang được route sử dụng thật nếu chưa kiểm tra.
+
+File dự kiến rà soát/thay đổi:
+
+```text
+app/src/main/java/com/example/shop/data/model/Payment.kt
+app/src/main/java/com/example/shop/data/model/Review.kt
+app/src/main/java/com/example/shop/data/model/Notification.kt
+app/src/main/java/com/example/shop/data/repository/PaymentRepository.kt
+app/src/main/java/com/example/shop/data/repository/ReviewRepository.kt
+app/src/main/java/com/example/shop/data/repository/NotificationRepository.kt
+app/src/main/java/com/example/shop/viewmodel/PaymentViewModel.kt
+app/src/main/java/com/example/shop/viewmodel/ReviewViewModel.kt
+app/src/main/java/com/example/shop/viewmodel/NotificationViewModel.kt
+app/src/main/java/com/example/shop/ui/payment/PaymentScreen.kt
+app/src/main/java/com/example/shop/ui/payment/AddPaymentScreen.kt
+app/src/main/java/com/example/shop/ui/review/ReviewScreen.kt
+app/src/main/java/com/example/shop/ui/review/MyReviewScreen.kt
+app/src/main/java/com/example/shop/ui/notification/NotificationScreen.kt
+app/src/main/java/com/example/shop/data/remote/firebase/FirebaseAuthService.kt
+app/src/main/java/com/example/shop/data/remote/firebase/FirestoreService.kt
+app/src/main/java/com/example/shop/admin/ui/user/ManageUserScreen.kt
+app/src/main/java/com/example/shop/admin/viewmodel/AdminUserViewModel.kt
+app/src/main/java/com/example/shop/navigation/MainNavGraph.kt
+PROGRESS.md
+```
+
+Hành động cụ thể:
+
+- Kiểm tra route nào thật sự dùng payment/review/notification/user admin.
+- Nếu không có route dùng: xóa file placeholder để code gọn.
+- Nếu có route nhưng chưa làm feature: đổi màn thành thông báo rõ ràng “Chức năng sẽ làm sau” hoặc gỡ khỏi navigation nếu không cần.
+- Xóa Firebase stub nếu không còn import/use ở đâu.
+- Build lại Android sau khi dọn.
+
+Quy tắc review:
+
+- Không xóa màn đang nằm trong flow chính như login, home, product, cart, checkout, order, address, admin product/category/order.
+- Chỉ xóa placeholder không có logic thật.
+- Nếu còn phân vân, giữ lại nhưng ghi rõ trong docs là phase sau.
+
+Lệnh kiểm tra:
+
+```powershell
+rg "Payment|Review|Notification|Firebase|ManageUser" app/src/main/java/com/example/shop
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Hoàn thành khi:
+
+- Android build pass.
+- Không còn Firebase stub.
+- Placeholder không gây hiểu nhầm backend thiếu tính năng đã cam kết.
+- Commit được push sau khi user review.
+
+### Checkpoint 26: Final E2E Sau Khi Đồng Bộ Model
+
+Vấn đề hiện tại:
+
+- Checkpoint 20 đã E2E core flow, nhưng chưa có Address API và chưa dọn model lệch.
+- Sau checkpoint 22-25 cần chạy lại toàn bộ luồng.
+
+Mục tiêu thực hiện:
+
+- Xác nhận app hoàn thiện hơn sau khi model/backend được đồng bộ.
+- Đảm bảo code vẫn gọn, dễ chạy local.
+- Ghi lại bằng chứng build/test cuối.
+
+File dự kiến thay đổi:
+
+```text
+PROGRESS.md
+```
+
+Hành động cụ thể:
+
+- Build backend.
+- Build Android.
+- Chạy backend local.
+- Test API auth/product/category/cart/order/address.
+- Test emulator các luồng chính.
+- Ghi kết quả vào `PROGRESS.md`.
+
+Lệnh kiểm tra:
+
+```powershell
+dotnet build backend/ShopApi --nologo
+dotnet list backend/ShopApi package --vulnerable --include-transitive
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Luồng test thủ công:
+
+```text
+1. Login admin.
+2. Tạo category.
+3. Tạo product có ảnh.
+4. Login user.
+5. Mở product list/detail.
+6. Add to cart.
+7. Thêm địa chỉ nhận hàng.
+8. Checkout COD.
+9. Mở order history.
+10. Login admin, đổi status order.
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Android build pass.
+- Address không còn mất sau khi reload.
+- Product/cart/order vẫn hoạt động sau khi chuẩn hóa model.
 - Commit final được push sau khi user review.
