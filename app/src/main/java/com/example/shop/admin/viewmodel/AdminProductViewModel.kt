@@ -40,7 +40,8 @@ class AdminProductViewModel @Inject constructor(
         description: String,
         imageUrl: String,
         quantity: Int,
-        categoryId: Int
+        categoryId: Int,
+        onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
             val newProduct = Product(
@@ -51,7 +52,7 @@ class AdminProductViewModel @Inject constructor(
                 quantity = quantity,
                 categoryId = categoryId
             )
-            productRepository.insertProduct(newProduct)
+            onResult(productRepository.insertProduct(newProduct))
         }
     }
 
@@ -62,7 +63,8 @@ class AdminProductViewModel @Inject constructor(
         description: String,
         imageUrl: String,
         quantity: Int,
-        categoryId: Int
+        categoryId: Int,
+        onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
             val updatedProduct = Product(
@@ -74,14 +76,14 @@ class AdminProductViewModel @Inject constructor(
                 quantity = quantity,
                 categoryId = categoryId
             )
-            productRepository.updateProduct(updatedProduct)
+            onResult(productRepository.updateProduct(updatedProduct))
         }
     }
 
     // Xóa Sản phẩm
-    fun deleteProduct(product: Product) {
+    fun deleteProduct(product: Product, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            productRepository.deleteProduct(product)
+            onResult(productRepository.deleteProduct(product))
         }
     }
 }

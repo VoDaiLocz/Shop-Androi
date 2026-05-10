@@ -37,6 +37,7 @@ fun ManageProductScreen(
 
     // State lưu ID danh mục đang chọn (null = Tất cả)
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Lọc danh sách sản phẩm hiển thị dựa trên category đã chọn
     val filteredProducts = if (selectedCategoryId == null) {
@@ -105,6 +106,14 @@ fun ManageProductScreen(
 
             Divider()
 
+            errorMessage?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
             // --- DANH SÁCH SẢN PHẨM SAU KHI LỌC ---
             if (filteredProducts.isEmpty()) {
                 Box(
@@ -128,7 +137,14 @@ fun ManageProductScreen(
                     items(filteredProducts) { product ->
                         ProductAdminItem(
                             product = product,
-                            onDelete = { viewModel.deleteProduct(product) },
+                            onDelete = {
+                                errorMessage = null
+                                viewModel.deleteProduct(product) { success ->
+                                    if (!success) {
+                                        errorMessage = "Không xóa được sản phẩm. Sản phẩm có thể đang nằm trong giỏ hàng hoặc đơn hàng."
+                                    }
+                                }
+                            },
                             onEdit = { onNavigateToUpdateProduct(product.id) }
                         )
                     }

@@ -29,6 +29,7 @@ fun UpdateProductScreen(
     var description by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     //State cho Category
     val categories by viewModel.allCategories.collectAsState(initial = emptyList())
@@ -150,21 +151,42 @@ fun UpdateProductScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                errorMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {
-                        if (name.isNotBlank() && price.isNotBlank() && selectedCategoryId != -1) {
-                            viewModel.updateProduct(
-                                id = productId,
-                                name = name,
-                                price = price.toDoubleOrNull() ?: 0.0,
-                                description = description,
-                                imageUrl = imageUrl,
-                                quantity = quantity.toIntOrNull() ?: 0,
-                                categoryId = selectedCategoryId
-                            )
-                            onNavigateBack()
+                        val productPrice = price.toDoubleOrNull()
+                        val productQuantity = quantity.toIntOrNull()
+                        when {
+                            name.isBlank() -> errorMessage = "Vui lòng nhập tên sản phẩm."
+                            productPrice == null -> errorMessage = "Giá sản phẩm không hợp lệ."
+                            productQuantity == null -> errorMessage = "Số lượng không hợp lệ."
+                            selectedCategoryId == -1 -> errorMessage = "Vui lòng chọn danh mục."
+                            else -> {
+                                errorMessage = null
+                                viewModel.updateProduct(
+                                    id = productId,
+                                    name = name,
+                                    price = productPrice,
+                                    description = description,
+                                    imageUrl = imageUrl,
+                                    quantity = productQuantity,
+                                    categoryId = selectedCategoryId
+                                ) { success ->
+                                    if (success) {
+                                        onNavigateBack()
+                                    } else {
+                                        errorMessage = "Không cập nhật được sản phẩm. Vui lòng kiểm tra dữ liệu hoặc quyền admin."
+                                    }
+                                }
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
