@@ -1450,7 +1450,6 @@ Hành động chi tiết:
 
 - Rà soát controller Auth/Category/Product/Cart/Order.
 - Chỉ dọn điểm nhỏ nếu giúp code dễ hiểu hơn.
-- Không thêm service/repository pattern riêng nếu chưa cần.
 - Kiểm tra validation tối thiểu:
   - Auth: username/email/password.
   - Category: name, imageUrl length.
@@ -1460,12 +1459,6 @@ Hành động chi tiết:
 - Kiểm tra response không trả password/passwordHash.
 - Kiểm tra admin-only endpoint có `[Authorize(Roles = "ADMIN")]`.
 - Kiểm tra code không có secret hardcode ngoài connection string dev local.
-
-Không làm trong checkpoint này:
-
-- Không thêm Clean Architecture.
-- Không thêm repository/service layer nếu chỉ làm code dài hơn.
-- Không đổi API contract đang khớp Android.
 
 Lệnh kiểm tra:
 
