@@ -1965,3 +1965,299 @@ Hoàn thành khi:
 - Android build pass.
 - Product/cart/order vẫn hoạt động sau khi xóa address book.
 - Commit final được push sau khi user review.
+
+
+## 17. Phase Mở Rộng Sau Hoàn Thiện Core 2026-05-19: Đăng Nhập Bằng Google
+
+Ngày bổ sung: 2026-05-19. Phase này chỉ bắt đầu sau khi Checkpoint 25 đã hoàn tất và user duyệt từng checkpoint con. Mục đích là cho phép người dùng đăng nhập bằng tài khoản Google bên cạnh luồng email/password hiện có, không thay đổi cơ chế JWT đã chốt từ Checkpoint 5.
+
+### 17.1 Lý Do Mở Rộng
+
+- App hiện chỉ cho đăng ký/đăng nhập bằng email + password thông qua `AuthController`.
+- Người dùng quen với "Sign in with Google" trên các app shop khác và mong có lựa chọn này để bớt phải tạo tài khoản mới.
+- Backend đã có `CreateToken` tái sử dụng được, nên việc thêm Google sign-in chỉ cần thêm 1 endpoint mới, không cần thay JWT hiện có.
+
+### 17.2 Nguyên Tắc Đơn Giản Hóa
+
+- Giữ nguyên `Register`, `Login`, `Me`, `CreateToken` trong `AuthController` để không phá luồng cũ.
+- Thêm cột `GoogleSub` vào `User` ở dạng nullable, không bỏ `PasswordHash` required.
+- Chỉ làm Google ở phase này; Facebook/Zalo/Apple để phase sau nếu cần.
+- Không thay JwtBearer config trong `Program.cs`; không động đến claim format đang dùng.
+- Mỗi checkpoint là một commit riêng, có thể rollback độc lập.
+- Tuân thủ quy trình section 3: Codex nêu trước, user duyệt, mới thực hiện.
+
+### 17.3 Quyết Định Đã Chốt Cho Phase Này
+
+| Quyết định | Kết luận |
+|---|---|
+| Provider | Chỉ Google (chưa làm Facebook/Zalo/Apple) |
+| Cơ chế | App lấy id_token từ Google rồi đổi sang JWT của ShopApi |
+| JWT của ShopApi | Giữ nguyên cấu hình HMAC-SHA256, issuer/audience hiện có |
+| Schema User | Thêm `GoogleSub` nullable + index unique. `PasswordHash` giữ required |
+| User chỉ Google | `PasswordHash = string.Empty` để pass required check, không lưu plain password |
+| Login | User cũ vẫn đăng nhập bằng email/password được; user mới có thể chọn Google |
+| Liên kết tài khoản | Nếu user Google trùng `Email` với account đã có thì gán `GoogleSub` vào account đó |
+| Android SDK | Dùng `androidx.credentials` + `googleid` (không dùng `GoogleSignIn` deprecated) |
+| Secret | `Google:ClientId` đặt vào appsettings dev; production dùng env var `Google__ClientId` |
+| Tốn phí | 0đ — Google Cloud OAuth Client ID free, verify id_token free quota |
+
+### Checkpoint 26: Chuẩn Bị Google Cloud OAuth Client ID
+
+Vấn đề hiện tại:
+
+- Backend chưa biết `Client ID` nào là hợp lệ để verify id_token.
+- App Android chưa có Web Client ID để xin id_token đúng audience.
+- Google chưa biết keystore nào của app được phép xin id_token, vì chưa có Android Client ID kèm SHA-1.
+
+Mục tiêu thực hiện:
+
+- Có một Google Cloud Project sẵn sàng cấp OAuth.
+- Có Web Client ID để đưa vào backend và Android.
+- Có Android Client ID đăng ký theo `package = com.example.shop` và SHA-1 của keystore debug.
+- Tài liệu hóa nơi đặt Client ID + nơi đặt secret để các checkpoint sau dùng lại.
+
+File dự kiến thay đổi:
+
+```text
+PROGRESS.md
+```
+
+Ghi chú file:
+
+- Không sửa code backend.
+- Không sửa code Android.
+- Toàn bộ thao tác làm trên Google Cloud Console và lệnh `signingReport` local.
+
+Hành động chi tiết:
+
+- Tạo Google Cloud Project tên `shop-android` ở https://console.cloud.google.com.
+- Cấu hình OAuth consent screen ở chế độ External với scope `email`, `profile`, `openid`.
+- Tạo OAuth Client ID loại Web application, đặt tên `Shop Backend`. Lưu lại `Client ID` để dùng cho backend và Android.
+- Lấy SHA-1 keystore debug bằng `./gradlew.bat signingReport` và lưu lại.
+- Tạo OAuth Client ID loại Android, đặt tên `Shop Android Debug`, gắn package `com.example.shop` và SHA-1 vừa lấy.
+- Ghi lại Web Client ID + Android Client ID vào nơi an toàn (vd: file `.env.local` không commit, hoặc note tạm).
+- Cập nhật `PROGRESS.md` ghi nhận checkpoint chuẩn bị done.
+
+Không làm trong checkpoint này:
+
+- Không sửa code backend.
+- Không sửa code Android.
+- Không tạo Android Client ID release vì chưa có keystore production.
+- Không bật API tính phí (Maps, Vision, ...).
+
+Lệnh kiểm tra:
+
+```powershell
+./gradlew.bat signingReport
+```
+
+Hoàn thành khi:
+
+- Có Web Client ID dạng `123456789-abc.apps.googleusercontent.com`.
+- Có Android Client ID đã đăng ký package + SHA-1 debug.
+- `PROGRESS.md` có dòng Checkpoint 26.
+- Commit chỉ chạm `PROGRESS.md`; không động code.
+
+### Checkpoint 27: Backend Thêm Endpoint /api/auth/google
+
+Vấn đề hiện tại:
+
+- `AuthController` hiện chỉ có `Register`, `Login`, `Me` cho luồng email/password.
+- `User` chưa có chỗ lưu định danh từ Google nên không thể nhận biết user social ở lần đăng nhập sau.
+- Backend chưa biết verify Google id_token.
+
+Mục tiêu thực hiện:
+
+- Backend nhận id_token từ Android, verify với Google, tự tạo hoặc liên kết user trong DB rồi trả JWT của ShopApi.
+- Mọi luồng `[Authorize]` và `[Authorize(Roles = "ADMIN")]` cũ vẫn chạy nguyên.
+- Migration sạch, có thể rollback.
+
+File dự kiến thay đổi:
+
+```text
+backend/ShopApi/ShopApi.csproj
+backend/ShopApi/Models/User.cs
+backend/ShopApi/Data/ShopDbContext.cs
+backend/ShopApi/Dtos/AuthDtos.cs
+backend/ShopApi/Controllers/AuthController.cs
+backend/ShopApi/appsettings.json
+backend/ShopApi/Migrations/  (sinh tự động bởi `dotnet ef migrations add`)
+PROGRESS.md
+```
+
+Hành động chi tiết:
+
+- Thêm `Google.Apis.Auth` 1.68.0 vào `ShopApi.csproj`.
+- Thêm property `string? GoogleSub` vào `User` model (sau `Role`, trước `CreatedAt`).
+- Trong `ConfigureUsers` của `ShopDbContext`, thêm `HasMaxLength(64)` cho `GoogleSub` và `HasIndex(...).IsUnique()`.
+- Tạo migration `AddGoogleAuth` bằng `dotnet ef migrations add AddGoogleAuth --project backend/ShopApi`.
+- Thêm record `GoogleLoginRequest(string IdToken)` vào `AuthDtos.cs`.
+- Thêm endpoint `[HttpPost("google")] Google(GoogleLoginRequest)` trong `AuthController`:
+  - Verify id_token bằng `GoogleJsonWebSignature.ValidateAsync` với audience là `Google:ClientId`.
+  - Lookup user theo `GoogleSub` hoặc `Email`.
+  - Nếu null thì tạo user `Role = "USER"`, `PasswordHash = string.Empty`, `GoogleSub = payload.Subject`.
+  - Nếu user đã có nhưng `GoogleSub` null thì gán `GoogleSub` để liên kết tài khoản cũ.
+  - Tái sử dụng `CreateToken` và `ToUserResponse` đã có (`AuthController.cs:96, 124`).
+- Thêm section `Google: { ClientId: "..." }` vào `appsettings.json`.
+- Không sửa `Register`, `Login`, `Me`, `CreateToken`.
+- Cập nhật `PROGRESS.md` sau khi build pass và HTTP smoke test ok.
+
+Không làm trong checkpoint này:
+
+- Không sửa `Program.cs` JwtBearer config.
+- Không thêm refresh token.
+- Không xóa hoặc đổi password của user hiện có.
+- Không làm UI Android.
+
+Lệnh kiểm tra:
+
+```powershell
+dotnet build backend/ShopApi --nologo
+dotnet ef migrations add AddGoogleAuth --project backend/ShopApi
+dotnet ef database update --project backend/ShopApi
+```
+
+Smoke test thủ công (yêu cầu có id_token thật từ Android hoặc OAuth Playground):
+
+```text
+1. Lấy id_token Google hợp lệ với audience = Web Client ID.
+2. Gọi POST http://localhost:5053/api/auth/google với body { "idToken": "..." }.
+3. Nhận 200 + JWT token + UserResponse.
+4. Gọi GET /api/auth/me với token đó, nhận về cùng user.
+5. Đăng nhập lại bằng email/password tài khoản cũ vẫn chạy bình thường.
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Migration tạo cột `GoogleSub` trong bảng `Users` và index unique.
+- Endpoint trả JWT khi id_token hợp lệ và 401 khi không hợp lệ.
+- Account email/password cũ login bình thường.
+- Commit được push sau khi user review.
+
+### Checkpoint 28: Android Thêm Sign In With Google
+
+Vấn đề hiện tại:
+
+- Màn login hiện chỉ có form email/password gọi `/api/auth/login`.
+- App chưa có cách lấy id_token Google.
+- `AuthApi` và `AuthRepository` chưa có hàm gọi `/api/auth/google`.
+
+Mục tiêu thực hiện:
+
+- Người dùng bấm "Sign in with Google" → app lấy id_token bằng Credential Manager → gửi backend → nhận JWT → vào home.
+- Form email/password vẫn nguyên, không thay UX cũ.
+- Không thêm Firebase, không phụ thuộc dependency mới ngoài kế hoạch ngoài Credential Manager + googleid.
+
+File dự kiến thay đổi:
+
+```text
+app/build.gradle.kts
+app/src/main/java/com/example/shop/data/remote/dto/AuthDtos.kt
+app/src/main/java/com/example/shop/data/remote/api/AuthApi.kt
+app/src/main/java/com/example/shop/data/repository/AuthRepository.kt
+app/src/main/java/com/example/shop/viewmodel/AuthViewModel.kt
+app/src/main/java/com/example/shop/ui/auth/LoginScreen.kt
+app/src/main/java/com/example/shop/utils/Constants.kt
+PROGRESS.md
+```
+
+Hành động chi tiết:
+
+- Thêm dependency vào `app/build.gradle.kts`:
+  - `androidx.credentials:credentials:1.3.0`
+  - `androidx.credentials:credentials-play-services-auth:1.3.0`
+  - `com.google.android.libraries.identity.googleid:googleid:1.1.1`
+- Đặt `GOOGLE_WEB_CLIENT_ID` (Web Client ID từ Checkpoint 26) vào `Constants.kt`.
+- Thêm DTO `GoogleLoginRequest(idToken: String)` vào `AuthDtos.kt`.
+- Thêm endpoint Retrofit `@POST("api/auth/google") suspend fun googleLogin(@Body request: GoogleLoginRequest): LoginResponse`.
+- Thêm hàm `loginWithGoogle(idToken: String)` trong `AuthRepository`, lưu token và user giống `login` hiện có.
+- Thêm hàm tương ứng trong `AuthViewModel` để xử lý loading/error.
+- Trong `LoginScreen`:
+  - Thêm 1 button "Sign in with Google" dưới form email/password.
+  - Khi bấm, dùng `CredentialManager` xin `GoogleIdTokenCredential` với `setServerClientId(GOOGLE_WEB_CLIENT_ID)`.
+  - Lấy `idToken` rồi gọi viewmodel `loginWithGoogle(idToken)`.
+  - Khi thành công, navigate sang home giống flow login email/password.
+
+Không làm trong checkpoint này:
+
+- Không thay form email/password cũ.
+- Không thêm Sign in with Facebook/Zalo/Apple.
+- Không thêm logo/branding nâng cao; dùng button text đơn giản.
+- Không lưu id_token Google ở local storage; chỉ dùng để đổi JWT rồi vứt.
+
+Lệnh kiểm tra:
+
+```powershell
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Hoàn thành khi:
+
+- Android build pass.
+- Login screen có nút Google bên cạnh form email/password.
+- Bấm Google → vào tài khoản test → vào màn home.
+- Login email/password tài khoản cũ vẫn chạy.
+- Commit được push sau khi user review.
+
+### Checkpoint 29: E2E Luồng Google Login
+
+Vấn đề hiện tại:
+
+- Backend và Android đã code xong từng phần ở Checkpoint 27, 28.
+- Chưa có run E2E thực tế trên backend local + emulator.
+
+Mục tiêu thực hiện:
+
+- Chứng minh luồng Google sign-in hoạt động end-to-end với backend local và app emulator.
+- Ghi lại bằng chứng vào `PROGRESS.md`.
+
+File dự kiến thay đổi:
+
+```text
+PROGRESS.md
+```
+
+Hành động chi tiết:
+
+- Chạy backend local `dotnet run --project backend/ShopApi`.
+- Cài app debug lên emulator.
+- Test các kịch bản:
+  - User mới Google → tài khoản tạo trong DB với `GoogleSub`, `Email`, `PasswordHash = ""`.
+  - User cũ email/password → login bằng Google cùng email → `GoogleSub` được liên kết.
+  - User chỉ Google → login lần 2 bằng Google → trả JWT; không tạo trùng user.
+  - Email/password cũ login → vẫn bình thường.
+  - Token giả → backend trả 401, app báo lỗi rõ.
+- Ghi `Checkpoint 29` vào `PROGRESS.md` với đầy đủ verify command + kết quả + bằng chứng.
+
+Không làm trong checkpoint này:
+
+- Không thêm feature mới.
+- Không sửa schema thêm.
+- Không thay đổi UI ngoài kết quả test.
+
+Lệnh kiểm tra:
+
+```powershell
+dotnet build backend/ShopApi --nologo
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
+```
+
+Luồng test thủ công:
+
+```text
+1. Backend local chạy tại http://localhost:5053.
+2. Emulator cài app debug.
+3. Trên màn login, bấm "Sign in with Google", chọn tài khoản test.
+4. Vào màn home → confirm `GET /api/auth/me` trả đúng user.
+5. Logout, login lại bằng Google → confirm vẫn cùng user (không tạo trùng).
+6. Logout, login bằng email/password (tài khoản cũ) → vẫn vào được.
+7. Test sai id_token → backend trả 401, app báo lỗi rõ.
+```
+
+Hoàn thành khi:
+
+- Backend build pass.
+- Android build pass.
+- 6 kịch bản test thủ công pass.
+- Commit final được push sau khi user review.
