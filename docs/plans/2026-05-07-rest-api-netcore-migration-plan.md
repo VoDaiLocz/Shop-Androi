@@ -2067,7 +2067,7 @@ Hoàn thành khi:
 Kết quả thực tế ngày 2026-05-21:
 
 - Google Cloud Project đã tạo: `shop-android` (`zippy-nexus-497009-c3`).
-- OAuth consent đã cấu hình External, trạng thái Testing, test user `locv2659@gmail.com`.
+- OAuth consent đã cấu hình External, trạng thái Testing, test users `locv2659@gmail.com` và `khoaduy2608@gmail.com`.
 - Scopes non-sensitive đã lưu: `openid`, `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile`.
 - Web OAuth client `Shop Backend`: `826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com`.
 - Android OAuth client dùng chung `Shop Android Shared Debug`: `826757086511-v1t2ise2a6e6c4133jlifgguploueojj.apps.googleusercontent.com`.

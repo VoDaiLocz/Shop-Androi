@@ -19,8 +19,8 @@ Trạng thái: Google Sign-In đã chạy được E2E trên emulator Google Pla
 | Nền tảng | Google Auth Platform |
 | User type | External |
 | Publishing status | Testing |
-| Test user | `locv2659@gmail.com` |
-| OAuth user cap | `1 user (1 test, 0 other) / 100 user cap` |
+| Test users | `locv2659@gmail.com`, `khoaduy2608@gmail.com` |
+| OAuth user cap | `2 users (2 test, 0 other) / 100 user cap` |
 
 Các scope non-sensitive đã lưu:
 
@@ -203,7 +203,7 @@ Fresh verification ngày 2026-05-21:
 | Trang Clients có `Shop Backend`, type Web application, và Web Client ID | PASS |
 | Trang Clients có `Shop Android Shared Debug`, type Android, package `com.example.shop`, và SHA-1 của `app/debug.keystore` | PASS |
 | Trang Clients vẫn còn `Shop Android Debug` cũ để tương thích máy test trước đó | PASS |
-| Trang Audience hiển thị `Testing`, `External`, `1 user`, và `locv2659@gmail.com` | PASS |
+| Trang Audience hiển thị `Testing`, `External`, `2 users`, `locv2659@gmail.com`, và `khoaduy2608@gmail.com` | PASS |
 | Trang Data Access hiển thị `openid`, `userinfo.email`, và `userinfo.profile` | PASS |
 | Output `keytool` của `app/debug.keystore` khớp SHA-1 Android OAuth | PASS |
 | Android Google Sign-In E2E trên emulator Google Play, chọn tài khoản Google và vào Home | PASS |
