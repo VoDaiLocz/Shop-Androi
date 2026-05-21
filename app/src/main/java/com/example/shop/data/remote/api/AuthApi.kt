@@ -1,6 +1,7 @@
 package com.example.shop.data.remote.api
 
 import com.example.shop.data.remote.dto.ApiUserResponse
+import com.example.shop.data.remote.dto.GoogleLoginRequest
 import com.example.shop.data.remote.dto.LoginRequest
 import com.example.shop.data.remote.dto.LoginResponse
 import com.example.shop.data.remote.dto.RegisterRequest
@@ -15,6 +16,9 @@ interface AuthApi {
 
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("api/auth/google")
+    suspend fun googleLogin(@Body request: GoogleLoginRequest): LoginResponse
 
     @GET("api/auth/me")
     suspend fun me(@Header("Authorization") authorization: String): ApiUserResponse

@@ -34,6 +34,16 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun loginWithGoogle(idToken: String, onResult: (User?) -> Unit) {
+        viewModelScope.launch {
+            val user = authRepository.loginWithGoogle(idToken)
+            if (user != null) {
+                _isLoggedIn.value = true
+            }
+            onResult(user)
+        }
+    }
+
     fun register(email: String, pass: String, name: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             val newUser = User(

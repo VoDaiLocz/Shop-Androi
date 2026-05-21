@@ -2179,9 +2179,9 @@ PROGRESS.md
 Hành động chi tiết:
 
 - Thêm dependency vào `app/build.gradle.kts`:
-  - `androidx.credentials:credentials:1.3.0`
-  - `androidx.credentials:credentials-play-services-auth:1.3.0`
-  - `com.google.android.libraries.identity.googleid:googleid:1.1.1`
+  - `androidx.credentials:credentials:1.6.0`
+  - `androidx.credentials:credentials-play-services-auth:1.6.0`
+  - `com.google.android.libraries.identity.googleid:googleid:1.2.0`
 - Đặt `GOOGLE_WEB_CLIENT_ID` (Web Client ID từ Checkpoint 26) vào `Constants.kt`.
 - Thêm DTO `GoogleLoginRequest(idToken: String)` vào `AuthDtos.kt`.
 - Thêm endpoint Retrofit `@POST("api/auth/google") suspend fun googleLogin(@Body request: GoogleLoginRequest): LoginResponse`.
@@ -2213,6 +2213,16 @@ Hoàn thành khi:
 - Bấm Google → vào tài khoản test → vào màn home.
 - Login email/password tài khoản cũ vẫn chạy.
 - Commit được push sau khi user review.
+
+Kết quả thực hiện ngày 2026-05-21:
+
+- Đã thêm dependency Credential Manager, Play Services Auth bridge và googleid vào Android.
+- Đã thêm `GOOGLE_WEB_CLIENT_ID` dùng Web OAuth Client ID đã chốt ở Checkpoint 26.
+- Đã thêm DTO/API/repository/viewmodel cho `POST /api/auth/google`.
+- Đã thêm nút `Sign in with Google` trực tiếp trên `LoginScreen`, dùng Credential Manager lấy `idToken`, gửi backend, nhận JWT và điều hướng như login thường.
+- Không thay đổi luồng email/password cũ.
+- Verify build: `dotnet build backend/ShopApi --nologo` pass và `./gradlew.bat clean :app:assembleDebug --no-daemon --console=plain --stacktrace "-Dkotlin.incremental=false"` pass.
+- E2E chọn tài khoản Google trên emulator sẽ thực hiện ở Checkpoint 29.
 
 ### Checkpoint 29: E2E Luồng Google Login
 

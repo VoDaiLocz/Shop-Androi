@@ -3,6 +3,7 @@ package com.example.shop.data.repository
 import com.example.shop.data.model.User
 import com.example.shop.data.remote.api.AuthApi
 import com.example.shop.data.remote.dto.ApiUserResponse
+import com.example.shop.data.remote.dto.GoogleLoginRequest
 import com.example.shop.data.remote.dto.LoginRequest
 import com.example.shop.data.remote.dto.RegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,10 +25,14 @@ class AuthRepository @Inject constructor(
     suspend fun login(email: String, password: String): User? {
         return runCatching {
             val response = authApi.login(LoginRequest(email.trim(), password))
-            val user = response.user.toUser()
-            _currentToken.value = response.token
-            _currentUser.value = user
-            user
+            saveSession(response.token, response.user)
+        }.getOrNull()
+    }
+
+    suspend fun loginWithGoogle(idToken: String): User? {
+        return runCatching {
+            val response = authApi.googleLogin(GoogleLoginRequest(idToken))
+            saveSession(response.token, response.user)
         }.getOrNull()
     }
 
@@ -51,6 +56,13 @@ class AuthRepository @Inject constructor(
 
     fun getAuthorizationHeader(): String? {
         return _currentToken.value?.let { token -> "Bearer $token" }
+    }
+
+    private fun saveSession(token: String, userResponse: ApiUserResponse): User {
+        val user = userResponse.toUser()
+        _currentToken.value = token
+        _currentUser.value = user
+        return user
     }
 
     private fun ApiUserResponse.toUser(): User {

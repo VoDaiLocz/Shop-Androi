@@ -11,6 +11,10 @@ data class LoginRequest(
     val password: String
 )
 
+data class GoogleLoginRequest(
+    val idToken: String
+)
+
 data class ApiUserResponse(
     val id: Int,
     val username: String,
