@@ -11,6 +11,9 @@ public record LoginRequest(
     [Required, EmailAddress, StringLength(255)] string Email,
     [Required] string Password);
 
+public record GoogleLoginRequest(
+    [Required] string IdToken);
+
 public record UserResponse(
     int Id,
     string Username,

@@ -36,7 +36,9 @@ public class ShopDbContext : DbContext
             entity.Property(user => user.Email).HasMaxLength(255).IsRequired();
             entity.Property(user => user.PasswordHash).HasMaxLength(500).IsRequired();
             entity.Property(user => user.Role).HasMaxLength(20).IsRequired();
+            entity.Property(user => user.GoogleSub).HasMaxLength(64);
             entity.HasIndex(user => user.Email).IsUnique();
+            entity.HasIndex(user => user.GoogleSub).IsUnique();
         });
     }
 

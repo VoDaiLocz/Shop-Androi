@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -78,6 +79,69 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse(token, ToUserResponse(user)));
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<LoginResponse>> Google(GoogleLoginRequest request)
+    {
+        var googleClientId = _configuration["Google:ClientId"];
+        if (string.IsNullOrWhiteSpace(googleClientId))
+        {
+            throw new InvalidOperationException("Google client ID is not configured. Set Google__ClientId before running the API.");
+        }
+
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            payload = await GoogleJsonWebSignature.ValidateAsync(
+                request.IdToken,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { googleClientId }
+                });
+        }
+        catch
+        {
+            return Unauthorized(new { message = "Invalid Google token." });
+        }
+
+        if (!payload.EmailVerified || string.IsNullOrWhiteSpace(payload.Email))
+        {
+            return Unauthorized(new { message = "Google account email is not verified." });
+        }
+
+        var email = payload.Email.Trim().ToLowerInvariant();
+        var user = await _db.Users.SingleOrDefaultAsync(user => user.GoogleSub == payload.Subject);
+        if (user is null)
+        {
+            user = await _db.Users.SingleOrDefaultAsync(user => user.Email == email);
+            if (user is null)
+            {
+                user = new User
+                {
+                    Username = CreateGoogleUsername(payload, email),
+                    Email = email,
+                    PasswordHash = string.Empty,
+                    Role = "USER",
+                    GoogleSub = payload.Subject
+                };
+
+                _db.Users.Add(user);
+            }
+            else if (user.GoogleSub is null)
+            {
+                user.GoogleSub = payload.Subject;
+            }
+            else
+            {
+                return Conflict(new { message = "Email is already linked to another Google account." });
+            }
+
+            await _db.SaveChangesAsync();
+        }
+
+        var token = CreateToken(user);
+        return Ok(new LoginResponse(token, ToUserResponse(user)));
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> Me()
@@ -132,5 +196,11 @@ public class AuthController : ControllerBase
     private static UserResponse ToUserResponse(User user)
     {
         return new UserResponse(user.Id, user.Username, user.Email, user.Role);
+    }
+
+    private static string CreateGoogleUsername(GoogleJsonWebSignature.Payload payload, string email)
+    {
+        var username = string.IsNullOrWhiteSpace(payload.Name) ? email.Split('@')[0] : payload.Name.Trim();
+        return username.Length <= 100 ? username : username[..100];
     }
 }
