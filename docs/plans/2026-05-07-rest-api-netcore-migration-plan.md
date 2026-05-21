@@ -2020,6 +2020,7 @@ File dự kiến thay đổi:
 
 ```text
 PROGRESS.md
+docs/google-oauth-setup.md
 ```
 
 Ghi chú file:
@@ -2057,6 +2058,19 @@ Hoàn thành khi:
 - Có Android Client ID đã đăng ký package + SHA-1 debug.
 - `PROGRESS.md` có dòng Checkpoint 26.
 - Commit chỉ chạm `PROGRESS.md`; không động code.
+
+Kết quả thực tế ngày 2026-05-21:
+
+- Google Cloud Project đã tạo: `shop-android` (`zippy-nexus-497009-c3`).
+- OAuth consent đã cấu hình External, trạng thái Testing, test user `locv2659@gmail.com`.
+- Scopes non-sensitive đã lưu: `openid`, `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile`.
+- Web OAuth client `Shop Backend`: `826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com`.
+- Android OAuth client `Shop Android Debug`: `826757086511-gn16lrjbrlu8ml1mtodmulv81qbi7o8v.apps.googleusercontent.com`.
+- Android package: `com.example.shop`.
+- Debug SHA-1: `33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86`.
+- Debug SHA-256: `69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48`.
+- Chi tiết cấu hình và kết quả verify nằm ở `docs/google-oauth-setup.md`.
+- Client secret Web application không ghi vào git. Luồng đã chốt chỉ cần Web Client ID để backend verify `id_token`.
 
 ### Checkpoint 27: Backend Thêm Endpoint /api/auth/google
 
