@@ -1,7 +1,7 @@
 # Cấu Hình Google OAuth
 
 Ngày cập nhật: 2026-05-21
-Trạng thái: Checkpoint 26 đã cấu hình xong trên Google Cloud Console
+Trạng thái: Google Sign-In đã chạy được E2E trên emulator Google Play. Repo đã có debug keystore dùng chung để thành viên nhóm clone về dùng cùng một SHA-1.
 
 ## Google Cloud Project
 
@@ -41,7 +41,21 @@ Các scope non-sensitive đã lưu:
 | Client ID | `826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com` |
 | Mục đích | Backend verify Google `id_token`; Android Credential Manager dùng làm server client ID |
 
-### Android Debug
+### Android Shared Debug
+
+| Trường | Giá trị |
+|---|---|
+| Name | `Shop Android Shared Debug` |
+| Type | Android |
+| Client ID | `826757086511-v1t2ise2a6e6c4133jlifgguploueojj.apps.googleusercontent.com` |
+| Package name | `com.example.shop` |
+| SHA-1 | `A4:E5:DC:3D:48:AD:F0:8A:5B:38:5E:58:6C:90:22:3B:A0:6E:CB:C6` |
+| SHA-256 | `67:8C:B5:89:85:F0:8E:86:61:5E:21:81:B5:91:3C:98:ED:E5:E2:05:DE:C1:CC:EA:1E:2A:3C:21:E9:26:34:90` |
+| Mục đích | Client chính cho debug build của repository. Thành viên nhóm clone repo sẽ dùng fingerprint này. |
+
+### Android Debug Cũ
+
+Client cũ vẫn để lại trên Google Console để không làm hỏng máy đã test trước đó:
 
 | Trường | Giá trị |
 |---|---|
@@ -50,21 +64,48 @@ Các scope non-sensitive đã lưu:
 | Client ID | `826757086511-gn16lrjbrlu8ml1mtodmulv81qbi7o8v.apps.googleusercontent.com` |
 | Package name | `com.example.shop` |
 | SHA-1 | `33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86` |
-| SHA-256 | `69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48` |
 
-## Debug Keystore Local
+## Debug Keystore Dùng Chung Trong Repo
 
-Keystore đã dùng để lấy fingerprint:
+Repository có file:
 
 ```text
-/home/vodailoc/.android/debug.keystore
+app/debug.keystore
 ```
+
+`app/build.gradle.kts` đã cấu hình debug build dùng đúng file này:
+
+```kotlin
+signingConfigs {
+    create("sharedDebug") {
+        storeFile = file("debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    }
+}
+
+buildTypes {
+    debug {
+        signingConfig = signingConfigs.getByName("sharedDebug")
+    }
+}
+```
+
+Ý nghĩa:
+
+- Mọi máy clone repo sẽ ký bản debug bằng cùng một keystore.
+- SHA-1 debug giống nhau trên mọi máy.
+- Google Cloud Console chỉ cần có một Android OAuth Client ID cho SHA-1 dùng chung.
+- Không cần thêm SHA-1 debug cá nhân của từng thành viên nhóm.
+
+Lưu ý: file này chỉ dùng cho debug/dev. Không dùng `app/debug.keystore` để ký bản release thật.
 
 Lệnh kiểm tra:
 
-```bash
+```powershell
 keytool -list -v \
-  -keystore /home/vodailoc/.android/debug.keystore \
+  -keystore app/debug.keystore \
   -alias androiddebugkey \
   -storepass android \
   -keypass android
@@ -75,8 +116,8 @@ Kết quả fingerprint đã verify ngày 2026-05-21:
 ```text
 Alias name: androiddebugkey
 Owner: CN=Android Debug, O=Android, C=US
-SHA1: 33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86
-SHA256: 69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48
+SHA1: A4:E5:DC:3D:48:AD:F0:8A:5B:38:5E:58:6C:90:22:3B:A0:6E:CB:C6
+SHA256: 67:8C:B5:89:85:F0:8E:86:61:5E:21:81:B5:91:3C:98:ED:E5:E2:05:DE:C1:CC:EA:1E:2A:3C:21:E9:26:34:90
 ```
 
 ## Nơi Dùng Các Giá Trị Này
@@ -105,6 +146,44 @@ const val GOOGLE_WEB_CLIENT_ID = "826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.
 
 Lưu ý: Android Credential Manager phải xin ID token bằng Web Client ID ở trên trong `serverClientId`. Android Client ID vẫn cần có trên Google Console để Google chấp nhận package name và SHA-1 debug của app.
 
+## Môi Trường Chạy Cho Thành Viên Nhóm
+
+Google Sign-In không chỉ phụ thuộc vào version Android của emulator. Nó còn phụ thuộc vào Google Play services bên trong máy ảo.
+
+Yêu cầu tối thiểu nên dùng:
+
+```text
+Emulator image: Google Play
+Không dùng image chỉ ghi Google APIs
+Package name: com.example.shop
+Backend local: http://localhost:5053
+Android app base URL: http://10.0.2.2:5053/
+```
+
+Image nhẹ nhất đã cài và test được:
+
+```text
+Android 26 Google Play x86
+```
+
+Google hiện không liệt kê `Android 26 Google Play x86_64` trong SDK Manager. Nếu cần đúng `x86_64`, dùng bản Google Play mới hơn, ví dụ Android 36.1 Google Play x86_64.
+
+Không commit các phần sau vào repository:
+
+- Android SDK.
+- AVD/emulator config trong `.android/avd`.
+- Log/screenshot khi test.
+
+Riêng `app/debug.keystore` là ngoại lệ có chủ đích: đây là keystore debug dùng chung cho nhóm, không phải keystore release.
+
+Nếu Google Sign-In báo lỗi trên máy mới, kiểm tra theo thứ tự:
+
+1. Máy ảo phải là image `Google Play`, không phải chỉ `Google APIs`.
+2. App debug phải được build từ repo này để dùng `app/debug.keystore`.
+3. Backend phải đang chạy ở `http://localhost:5053`.
+4. Android vẫn dùng base URL `http://10.0.2.2:5053/`.
+5. Không đổi Web Client ID trong code Android/backend nếu vẫn dùng cùng project Google Cloud.
+
 ## Xử Lý Secret
 
 Google đã tạo client secret cho Web application client, nhưng secret đó không được ghi vào repository này.
@@ -122,13 +201,9 @@ Fresh verification ngày 2026-05-21:
 | Kiểm tra | Kết quả |
 |---|---|
 | Trang Clients có `Shop Backend`, type Web application, và Web Client ID | PASS |
-| Trang Clients có `Shop Android Debug`, type Android, và Android Client ID | PASS |
+| Trang Clients có `Shop Android Shared Debug`, type Android, package `com.example.shop`, và SHA-1 của `app/debug.keystore` | PASS |
+| Trang Clients vẫn còn `Shop Android Debug` cũ để tương thích máy test trước đó | PASS |
 | Trang Audience hiển thị `Testing`, `External`, `1 user`, và `locv2659@gmail.com` | PASS |
 | Trang Data Access hiển thị `openid`, `userinfo.email`, và `userinfo.profile` | PASS |
-| Output `keytool` local khớp SHA-1 Android OAuth | PASS |
-
-Chưa test trong checkpoint này:
-
-- Backend `/api/auth/google`, vì đây là Checkpoint 27 và chưa implement.
-- Android Credential Manager Google login, vì đây là Checkpoint 28 và chưa implement.
-- End-to-end Google login, vì cần hoàn thành Checkpoint 27 và Checkpoint 28 trước.
+| Output `keytool` của `app/debug.keystore` khớp SHA-1 Android OAuth | PASS |
+| Android Google Sign-In E2E trên emulator Google Play, chọn tài khoản Google và vào Home | PASS |

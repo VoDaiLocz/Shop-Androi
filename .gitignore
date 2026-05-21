@@ -13,6 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin/
+.playwright-mcp/
+checkpoint*.png
+checkpoint*.xml
+backend/ShopApi/*e2e*.log
+backend/ShopApi/*e2e*.pid
 
 # .NET backend build outputs
 bin/

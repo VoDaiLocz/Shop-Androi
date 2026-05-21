@@ -2007,18 +2007,20 @@ Vấn đề hiện tại:
 
 - Backend chưa biết `Client ID` nào là hợp lệ để verify id_token.
 - App Android chưa có Web Client ID để xin id_token đúng audience.
-- Google chưa biết keystore nào của app được phép xin id_token, vì chưa có Android Client ID kèm SHA-1.
+- Google phải biết keystore nào của app được phép xin `id_token`, vì Android OAuth Client ID kiểm tra theo `package name` và SHA-1 của app signing key.
 
 Mục tiêu thực hiện:
 
 - Có một Google Cloud Project sẵn sàng cấp OAuth.
 - Có Web Client ID để đưa vào backend và Android.
-- Có Android Client ID đăng ký theo `package = com.example.shop` và SHA-1 của keystore debug.
+- Có Android Client ID đăng ký theo `package = com.example.shop` và SHA-1 của keystore debug dùng chung trong repo.
 - Tài liệu hóa nơi đặt Client ID + nơi đặt secret để các checkpoint sau dùng lại.
 
 File dự kiến thay đổi:
 
 ```text
+app/build.gradle.kts
+app/debug.keystore
 PROGRESS.md
 docs/google-oauth-setup.md
 ```
@@ -2026,38 +2028,41 @@ docs/google-oauth-setup.md
 Ghi chú file:
 
 - Không sửa code backend.
-- Không sửa code Android.
-- Toàn bộ thao tác làm trên Google Cloud Console và lệnh `signingReport` local.
+- Android chỉ cấu hình signing debug dùng chung, không sửa logic màn hình/API.
+- Phần OAuth Client ID làm trên Google Cloud Console.
 
 Hành động chi tiết:
 
 - Tạo Google Cloud Project tên `shop-android` ở https://console.cloud.google.com.
 - Cấu hình OAuth consent screen ở chế độ External với scope `email`, `profile`, `openid`.
 - Tạo OAuth Client ID loại Web application, đặt tên `Shop Backend`. Lưu lại `Client ID` để dùng cho backend và Android.
-- Lấy SHA-1 keystore debug bằng `./gradlew.bat signingReport` và lưu lại.
-- Tạo OAuth Client ID loại Android, đặt tên `Shop Android Debug`, gắn package `com.example.shop` và SHA-1 vừa lấy.
+- Tạo `app/debug.keystore` dùng chung cho nhóm.
+- Cấu hình `app/build.gradle.kts` để debug build dùng `app/debug.keystore`.
+- Lấy SHA-1 của `app/debug.keystore` bằng `keytool`.
+- Tạo OAuth Client ID loại Android, đặt tên `Shop Android Shared Debug`, gắn package `com.example.shop` và SHA-1 vừa lấy.
 - Ghi lại Web Client ID + Android Client ID vào nơi an toàn (vd: file `.env.local` không commit, hoặc note tạm).
 - Cập nhật `PROGRESS.md` ghi nhận checkpoint chuẩn bị done.
 
 Không làm trong checkpoint này:
 
 - Không sửa code backend.
-- Không sửa code Android.
+- Không sửa logic Android login.
 - Không tạo Android Client ID release vì chưa có keystore production.
 - Không bật API tính phí (Maps, Vision, ...).
 
 Lệnh kiểm tra:
 
 ```powershell
-./gradlew.bat signingReport
+keytool -list -v -keystore app/debug.keystore -alias androiddebugkey -storepass android -keypass android
+./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace
 ```
 
 Hoàn thành khi:
 
 - Có Web Client ID dạng `123456789-abc.apps.googleusercontent.com`.
-- Có Android Client ID đã đăng ký package + SHA-1 debug.
+- Có Android Client ID đã đăng ký package + SHA-1 debug dùng chung.
 - `PROGRESS.md` có dòng Checkpoint 26.
-- Commit chỉ chạm `PROGRESS.md`; không động code.
+- Commit có `app/debug.keystore`, signing config, docs và progress liên quan.
 
 Kết quả thực tế ngày 2026-05-21:
 
@@ -2065,12 +2070,16 @@ Kết quả thực tế ngày 2026-05-21:
 - OAuth consent đã cấu hình External, trạng thái Testing, test user `locv2659@gmail.com`.
 - Scopes non-sensitive đã lưu: `openid`, `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile`.
 - Web OAuth client `Shop Backend`: `826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com`.
+- Android OAuth client dùng chung `Shop Android Shared Debug`: `826757086511-v1t2ise2a6e6c4133jlifgguploueojj.apps.googleusercontent.com`.
 - Android OAuth client `Shop Android Debug`: `826757086511-gn16lrjbrlu8ml1mtodmulv81qbi7o8v.apps.googleusercontent.com`.
 - Android package: `com.example.shop`.
+- Shared debug SHA-1: `A4:E5:DC:3D:48:AD:F0:8A:5B:38:5E:58:6C:90:22:3B:A0:6E:CB:C6`.
+- Shared debug SHA-256: `67:8C:B5:89:85:F0:8E:86:61:5E:21:81:B5:91:3C:98:ED:E5:E2:05:DE:C1:CC:EA:1E:2A:3C:21:E9:26:34:90`.
 - Debug SHA-1: `33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86`.
 - Debug SHA-256: `69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48`.
 - Chi tiết cấu hình và kết quả verify nằm ở `docs/google-oauth-setup.md`.
 - Client secret Web application không ghi vào git. Luồng đã chốt chỉ cần Web Client ID để backend verify `id_token`.
+- `app/debug.keystore` được commit có chủ đích để mọi thành viên nhóm dùng cùng SHA-1 debug khi clone repo.
 
 ### Checkpoint 27: Backend Thêm Endpoint /api/auth/google
 
@@ -2179,9 +2188,9 @@ PROGRESS.md
 Hành động chi tiết:
 
 - Thêm dependency vào `app/build.gradle.kts`:
-  - `androidx.credentials:credentials:1.6.0`
-  - `androidx.credentials:credentials-play-services-auth:1.6.0`
-  - `com.google.android.libraries.identity.googleid:googleid:1.2.0`
+  - `androidx.credentials:credentials:1.3.0`
+  - `androidx.credentials:credentials-play-services-auth:1.3.0`
+  - `com.google.android.libraries.identity.googleid:googleid:1.1.1`
 - Đặt `GOOGLE_WEB_CLIENT_ID` (Web Client ID từ Checkpoint 26) vào `Constants.kt`.
 - Thêm DTO `GoogleLoginRequest(idToken: String)` vào `AuthDtos.kt`.
 - Thêm endpoint Retrofit `@POST("api/auth/google") suspend fun googleLogin(@Body request: GoogleLoginRequest): LoginResponse`.
@@ -2285,3 +2294,12 @@ Hoàn thành khi:
 - Android build pass.
 - 6 kịch bản test thủ công pass.
 - Commit final được push sau khi user review.
+
+Kết quả thực tế ngày 2026-05-21:
+
+- Backend local đã chạy tại `http://localhost:5053`.
+- Emulator dùng image `Android 26 Google Play x86`, Google Play services đã cập nhật và tài khoản Google test đã đăng nhập được.
+- Google Cloud Console đã có Android OAuth client dùng chung `Shop Android Shared Debug` cho package `com.example.shop` và SHA-1 của `app/debug.keystore`.
+- Google Sign-In E2E đã pass: app mở Google consent, chọn tài khoản test, backend nhận `id_token`, liên kết `GoogleSub`, trả JWT ShopApi và Android vào được màn Home.
+- Backend log xác nhận truy vấn theo `GoogleSub`, truy vấn theo `Email`, cập nhật `Users.GoogleSub`, rồi load products/categories/cart.
+- Verify build: `dotnet build backend/ShopApi --nologo` pass và `./gradlew.bat :app:assembleDebug --no-daemon --console=plain --stacktrace "-Dkotlin.incremental=false"` pass.
