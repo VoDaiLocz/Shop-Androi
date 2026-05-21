@@ -1,30 +1,30 @@
-# Google OAuth Setup
+# Cấu Hình Google OAuth
 
-Ngay cap nhat: 2026-05-21
-Trang thai: Checkpoint 26 da cau hinh xong tren Google Cloud Console
+Ngày cập nhật: 2026-05-21
+Trạng thái: Checkpoint 26 đã cấu hình xong trên Google Cloud Console
 
 ## Google Cloud Project
 
-| Truong | Gia tri |
+| Trường | Giá trị |
 |---|---|
-| Project name | `shop-android` |
+| Tên project | `shop-android` |
 | Project ID | `zippy-nexus-497009-c3` |
 | Console | `https://console.cloud.google.com/auth/clients?project=zippy-nexus-497009-c3` |
-| Tai khoan cau hinh | `locv2659@gmail.com` |
+| Tài khoản cấu hình | `locv2659@gmail.com` |
 
 ## OAuth Consent
 
-| Muc | Gia tri |
+| Mục | Giá trị |
 |---|---|
-| Platform | Google Auth Platform |
+| Nền tảng | Google Auth Platform |
 | User type | External |
 | Publishing status | Testing |
 | Test user | `locv2659@gmail.com` |
 | OAuth user cap | `1 user (1 test, 0 other) / 100 user cap` |
 
-Non-sensitive scopes da luu:
+Các scope non-sensitive đã lưu:
 
-| Scope | Mo ta tren Google Console |
+| Scope | Mô tả trên Google Console |
 |---|---|
 | `openid` | Associate you with your personal info on Google |
 | `https://www.googleapis.com/auth/userinfo.email` | See your primary Google Account email address |
@@ -34,16 +34,16 @@ Non-sensitive scopes da luu:
 
 ### Web Application
 
-| Truong | Gia tri |
+| Trường | Giá trị |
 |---|---|
 | Name | `Shop Backend` |
 | Type | Web application |
 | Client ID | `826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com` |
-| Muc dich | Backend verify Google `id_token`; Android Credential Manager dung lam server client ID |
+| Mục đích | Backend verify Google `id_token`; Android Credential Manager dùng làm server client ID |
 
 ### Android Debug
 
-| Truong | Gia tri |
+| Trường | Giá trị |
 |---|---|
 | Name | `Shop Android Debug` |
 | Type | Android |
@@ -52,15 +52,15 @@ Non-sensitive scopes da luu:
 | SHA-1 | `33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86` |
 | SHA-256 | `69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48` |
 
-## Local Debug Keystore
+## Debug Keystore Local
 
-Keystore da dung de lay fingerprint:
+Keystore đã dùng để lấy fingerprint:
 
 ```text
 /home/vodailoc/.android/debug.keystore
 ```
 
-Lenh kiem tra:
+Lệnh kiểm tra:
 
 ```bash
 keytool -list -v \
@@ -70,7 +70,7 @@ keytool -list -v \
   -keypass android
 ```
 
-Ket qua fingerprint da verify ngay 2026-05-21:
+Kết quả fingerprint đã verify ngày 2026-05-21:
 
 ```text
 Alias name: androiddebugkey
@@ -79,7 +79,7 @@ SHA1: 33:DB:2C:01:F2:D8:E2:70:27:39:2F:EB:1B:5A:BF:8B:EA:A9:A2:86
 SHA256: 69:3F:6B:B7:90:DF:57:95:5B:3C:5F:84:D1:14:A9:9B:07:8C:91:C2:CF:41:79:C6:FC:DC:B9:C2:A7:18:89:48
 ```
 
-## Where To Use These Values
+## Nơi Dùng Các Giá Trị Này
 
 Backend Checkpoint 27:
 
@@ -91,7 +91,7 @@ Backend Checkpoint 27:
 }
 ```
 
-Production/deployment environment variable:
+Biến môi trường production/deployment:
 
 ```bash
 Google__ClientId=826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com
@@ -103,32 +103,32 @@ Android Checkpoint 28:
 const val GOOGLE_WEB_CLIENT_ID = "826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com"
 ```
 
-Important: Android Credential Manager should request the ID token with the Web Client ID above as `serverClientId`. The Android Client ID is still needed in Google Console so Google accepts the app package and debug SHA-1.
+Lưu ý: Android Credential Manager phải xin ID token bằng Web Client ID ở trên trong `serverClientId`. Android Client ID vẫn cần có trên Google Console để Google chấp nhận package name và SHA-1 debug của app.
 
-## Secret Handling
+## Xử Lý Secret
 
-Google created a client secret for the Web application client, but it is not recorded in this repository.
+Google đã tạo client secret cho Web application client, nhưng secret đó không được ghi vào repository này.
 
-Reason:
+Lý do:
 
-- The planned Google login flow verifies Android-issued `id_token` by audience and only needs the Web Client ID.
-- OAuth client secrets are credentials. Do not commit them even in a private repository.
-- If the secret is ever needed for a different server-side OAuth flow, read it directly from Google Cloud Console and store it in a local secret store or deployment environment variable, not in git.
+- Luồng Google login đã chốt chỉ verify `id_token` do Android phát hành theo audience, nên chỉ cần Web Client ID.
+- OAuth client secret là credential thật. Không commit secret kể cả khi repository private.
+- Nếu sau này cần secret cho luồng OAuth server-side khác, lấy trực tiếp từ Google Cloud Console và lưu trong secret store local hoặc biến môi trường deployment, không lưu trong git.
 
-## Verification Performed
+## Kết Quả Verify
 
-Fresh verification on 2026-05-21:
+Fresh verification ngày 2026-05-21:
 
-| Check | Result |
+| Kiểm tra | Kết quả |
 |---|---|
-| Clients page contains `Shop Backend`, Web application type, and Web Client ID | PASS |
-| Clients page contains `Shop Android Debug`, Android type, and Android Client ID | PASS |
-| Audience page shows `Testing`, `External`, `1 user`, and `locv2659@gmail.com` | PASS |
-| Data Access page shows `openid`, `userinfo.email`, and `userinfo.profile` | PASS |
-| Local `keytool` output matches Android OAuth SHA-1 | PASS |
+| Trang Clients có `Shop Backend`, type Web application, và Web Client ID | PASS |
+| Trang Clients có `Shop Android Debug`, type Android, và Android Client ID | PASS |
+| Trang Audience hiển thị `Testing`, `External`, `1 user`, và `locv2659@gmail.com` | PASS |
+| Trang Data Access hiển thị `openid`, `userinfo.email`, và `userinfo.profile` | PASS |
+| Output `keytool` local khớp SHA-1 Android OAuth | PASS |
 
-Not yet tested in this checkpoint:
+Chưa test trong checkpoint này:
 
-- Backend `/api/auth/google`, because it is Checkpoint 27 and has not been implemented yet.
-- Android Credential Manager Google login, because it is Checkpoint 28 and has not been implemented yet.
-- End-to-end Google login, because it depends on Checkpoints 27 and 28.
+- Backend `/api/auth/google`, vì đây là Checkpoint 27 và chưa implement.
+- Android Credential Manager Google login, vì đây là Checkpoint 28 và chưa implement.
+- End-to-end Google login, vì cần hoàn thành Checkpoint 27 và Checkpoint 28 trước.
