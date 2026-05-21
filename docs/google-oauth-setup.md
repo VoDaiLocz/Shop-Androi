@@ -1,6 +1,6 @@
 # Cấu Hình Google OAuth
 
-Ngày cập nhật: 2026-05-21
+Ngày cập nhật: 2026-05-22
 Trạng thái: Google Sign-In đã chạy được E2E trên emulator Google Play. Repo đã có debug keystore dùng chung để thành viên nhóm clone về dùng cùng một SHA-1.
 
 ## Google Cloud Project
@@ -11,6 +11,25 @@ Trạng thái: Google Sign-In đã chạy được E2E trên emulator Google Pla
 | Project ID | `zippy-nexus-497009-c3` |
 | Console | `https://console.cloud.google.com/auth/clients?project=zippy-nexus-497009-c3` |
 | Tài khoản cấu hình | `locv2659@gmail.com` |
+
+## Quyền Xem Google Cloud Console
+
+Các quyền IAM dưới đây chỉ dùng để thành viên nhóm xem cấu hình Google Cloud/OAuth khi cần kiểm tra lỗi đăng nhập Google. Không dùng các quyền này để đăng nhập app.
+
+| Tài khoản | IAM role | Mục đích |
+|---|---|---|
+| `khoaduy2608@gmail.com` | `Browser` | Cho phép nhìn thấy project và duyệt tài nguyên cơ bản trong Google Cloud Console |
+| `khoaduy2608@gmail.com` | `OAuth Config Viewer (Beta)` | Cho phép xem cấu hình OAuth client, consent screen, test users, scopes |
+
+Giới hạn quyền:
+
+- Không có quyền `Owner`.
+- Không có quyền `Editor`.
+- Không có quyền sửa IAM.
+- Không có quyền sửa OAuth config.
+- Không có quyền billing/deployment/resource admin.
+
+Nếu cần thay đổi cấu hình OAuth, dùng tài khoản owner `locv2659@gmail.com` để thực hiện rồi cập nhật lại tài liệu này.
 
 ## OAuth Consent
 
