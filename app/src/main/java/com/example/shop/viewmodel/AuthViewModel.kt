@@ -34,13 +34,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun loginWithGoogle(idToken: String, onResult: (User?) -> Unit) {
+    fun loginWithGoogle(idToken: String, onResult: (User?, String?) -> Unit) {
         viewModelScope.launch {
-            val user = authRepository.loginWithGoogle(idToken)
+            val result = authRepository.loginWithGoogle(idToken)
+            val user = result.user
             if (user != null) {
                 _isLoggedIn.value = true
             }
-            onResult(user)
+            onResult(user, result.errorMessage)
         }
     }
 

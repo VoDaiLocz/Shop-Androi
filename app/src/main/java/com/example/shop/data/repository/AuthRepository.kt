@@ -9,8 +9,15 @@ import com.example.shop.data.remote.dto.RegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONObject
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+data class AuthResult(
+    val user: User? = null,
+    val errorMessage: String? = null
+)
 
 @Singleton
 class AuthRepository @Inject constructor(
@@ -29,11 +36,13 @@ class AuthRepository @Inject constructor(
         }.getOrNull()
     }
 
-    suspend fun loginWithGoogle(idToken: String): User? {
-        return runCatching {
+    suspend fun loginWithGoogle(idToken: String): AuthResult {
+        return try {
             val response = authApi.googleLogin(GoogleLoginRequest(idToken))
-            saveSession(response.token, response.user)
-        }.getOrNull()
+            AuthResult(user = saveSession(response.token, response.user))
+        } catch (error: Exception) {
+            AuthResult(errorMessage = error.readBackendMessage())
+        }
     }
 
     suspend fun register(user: User): Boolean {
@@ -73,5 +82,18 @@ class AuthRepository @Inject constructor(
             password = "",
             role = role
         )
+    }
+
+    private fun Exception.readBackendMessage(): String {
+        if (this is HttpException) {
+            val body = response()?.errorBody()?.string()
+            val message = body?.let {
+                runCatching { JSONObject(it).optString("message") }.getOrNull()
+            }?.takeIf { it.isNotBlank() }
+
+            return message ?: "Backend trả lỗi HTTP ${code()}."
+        }
+
+        return message ?: "Không thể kết nối backend."
     }
 }

@@ -88,12 +88,12 @@ fun LoginScreen(
                         return@launch
                     }
 
-                    viewModel.loginWithGoogle(idToken) { user ->
+                    viewModel.loginWithGoogle(idToken) { user, backendError ->
                         isGoogleLoading = false
                         if (user != null) {
                             onLoginSuccess(user)
                         } else {
-                            errorMessage = "Backend không chấp nhận tài khoản Google này."
+                            errorMessage = backendError ?: "Backend không chấp nhận tài khoản Google này."
                         }
                     }
                 }
