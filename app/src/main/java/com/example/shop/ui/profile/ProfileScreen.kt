@@ -1,24 +1,46 @@
 package com.example.shop.ui.profile
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings // Thêm icon Settings
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.shop.ui.theme.ShopColors
+import com.example.shop.ui.theme.ShopShapes
 import com.example.shop.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,89 +51,103 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    // Lấy thông tin user hiện tại từ ViewModel
     val currentUser by authViewModel.currentUser.collectAsState()
-
-    //trạng thái cuộn
     val scrollState = rememberScrollState()
+
     Scaffold(
+        containerColor = ShopColors.Background,
         topBar = {
-            TopAppBar(title = { Text("Hồ sơ cá nhân") })
+            TopAppBar(
+                title = {
+                    Text(
+                        "Profile",
+                        color = ShopColors.TextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = ShopColors.Background)
+            )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(18.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Biểu tượng Avatar mặc định
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(100.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Hiển thị thông tin User
-            currentUser?.let { user ->
-                Text(
-                    text = user.username,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = user.email,
-                    fontSize = 16.sp,
-                    color = Color.Gray
-                )
-
-                // Hiển thị vai trò (Role)
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.padding(top = 8.dp)
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = ShopShapes.Card,
+                colors = CardDefaults.elevatedCardColors(containerColor = ShopColors.Surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = user.role,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    Surface(
+                        modifier = Modifier.size(96.dp),
+                        shape = ShopShapes.Pill,
+                        color = ShopColors.SurfaceSoft
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.padding(22.dp),
+                            tint = ShopColors.Wood
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    currentUser?.let { user ->
+                        Text(
+                            text = user.username,
+                            fontSize = 24.sp,
+                            color = ShopColors.TextPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = user.email,
+                            fontSize = 15.sp,
+                            color = ShopColors.TextSecondary
+                        )
+
+                        Surface(
+                            shape = ShopShapes.Pill,
+                            color = ShopColors.SurfaceSoft,
+                            modifier = Modifier.padding(top = 12.dp)
+                        ) {
+                            Text(
+                                text = user.role,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                                color = ShopColors.Wood,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
-            // --- CÁC LỰA CHỌN ---
-
-            OutlinedButton(
-                onClick = onNavigateToOrders,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
-            ) {
+            ProfileActionButton(text = "Lịch sử đơn hàng", onClick = onNavigateToOrders) {
                 Icon(Icons.Default.History, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Lịch sử đơn hàng")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedButton(
-                onClick = onNavigateToSettings,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
-            ) {
+            ProfileActionButton(text = "Cài đặt ứng dụng", onClick = onNavigateToSettings) {
                 Icon(Icons.Default.Settings, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cài đặt ứng dụng")
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
+            HorizontalDivider(color = ShopColors.Border)
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
@@ -119,8 +155,10 @@ fun ProfileScreen(
                     authViewModel.logout()
                     onLogout()
                 },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = ShopShapes.Button,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Icon(Icons.Default.ExitToApp, contentDescription = null)
@@ -128,5 +166,25 @@ fun ProfileScreen(
                 Text("Đăng xuất")
             }
         }
+    }
+}
+
+@Composable
+private fun ProfileActionButton(
+    text: String,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        shape = ShopShapes.Button,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = ShopColors.TextPrimary)
+    ) {
+        icon()
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text)
     }
 }

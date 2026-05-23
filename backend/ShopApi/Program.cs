@@ -62,6 +62,7 @@ if (args.Contains("--seed-admin", StringComparer.OrdinalIgnoreCase))
 if (app.Environment.IsDevelopment())
 {
     await DatabaseSeeder.SeedAdminAsync(app.Services, allowDevelopmentDefaults: true);
+    await DatabaseSeeder.SeedCatalogAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
