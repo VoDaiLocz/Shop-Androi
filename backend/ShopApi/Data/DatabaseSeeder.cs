@@ -9,17 +9,25 @@ public static class DatabaseSeeder
     private const string DevelopmentAdminEmail = "admin@shop.local";
     private const string DevelopmentAdminUsername = "Admin";
     private const string DevelopmentAdminPassword = "Admin123456!";
+    private const string SeedImagePath = "/uploads/products/seed/";
 
     private static readonly SeedProduct[] SeedProducts =
     [
-        new("Carlisle Double", "Tủ", 583m, 9, "Tủ gỗ thấp nhiều ngăn, dùng làm kệ TV hoặc tủ lưu trữ trong phòng khách.", "https://images.pexels.com/photos/2082090/pexels-photo-2082090.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Facet Table Lamp", "Đèn", 284m, 15, "Đèn bàn dáng thanh mảnh, ánh sáng ấm cho phòng ngủ hoặc góc đọc sách.", "https://images.pexels.com/photos/534151/pexels-photo-534151.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Sofa Footstool", "Sofa", 495m, 12, "Ghế đôn bọc vải sáng màu, dễ phối cùng sofa và bàn trà tối giản.", "https://images.pexels.com/photos/116910/pexels-photo-116910.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Theodore Chair", "Ghế", 322m, 18, "Ghế gỗ tự nhiên kết hợp đệm ngồi, thiết kế thanh mảnh cho bàn ăn hoặc góc đọc sách.", "https://images.pexels.com/photos/2762247/pexels-photo-2762247.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Nora Lounge", "Ghế", 423m, 10, "Ghế lounge thư giãn với dáng cong mềm, điểm nhấn nổi bật cho phòng khách.", "https://images.pexels.com/photos/6580221/pexels-photo-6580221.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Mellow Coffee Table", "Bàn", 369m, 15, "Bàn cafe nhỏ gọn, mặt bàn tối giản dễ phối với sofa và thảm phòng khách.", "https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Haven Dining Table", "Bàn", 512m, 7, "Bàn ăn gia đình tone gỗ ấm, bề mặt rộng và thiết kế sạch cho không gian bếp hiện đại.", "https://images.pexels.com/photos/1571468/pexels-photo-1571468.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Linen Calm Bed", "Giường", 642m, 6, "Giường ngủ bọc vải sáng màu, thiết kế thấp và êm cho phòng ngủ tối giản.", "https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg?auto=compress&cs=tinysrgb&w=900")
+        new("Sofa Oslo", "Sofa", 890m, 7, "Sofa ba chỗ vải xám sáng, dáng thấp tối giản cho phòng khách hiện đại.", SeedImagePath + "sofa-oslo.jpg"),
+        new("Kệ Tường Botanica", "Kệ", 245m, 14, "Kệ tường gỗ sồi bo góc, hai tầng mở để trưng bày đồ decor nhỏ.", SeedImagePath + "ke-tuong-botanica.jpg"),
+        new("Kệ Sách Aurora", "Kệ sách", 420m, 9, "Kệ sách gỗ sồi cao, đường nét gọn và nhiều ngăn mở.", SeedImagePath + "ke-sach-aurora.jpg"),
+        new("Ghế Mira", "Ghế", 360m, 8, "Ghế thư giãn bọc vải kem với tay gỗ tự nhiên.", SeedImagePath + "ghe-mira.jpg"),
+        new("Băng Ghế Aria", "Ghế", 520m, 6, "Băng ghế đệm boucle màu ngà, chân gỗ ngắn và dáng mềm.", SeedImagePath + "bang-ghe-aria.jpg"),
+        new("Tủ Noir", "Tủ", 760m, 5, "Tủ trưng bày kính vòm màu đen, khung mảnh và kệ mở bên trong.", SeedImagePath + "tu-noir.jpg"),
+        new("Ghế Papasan Luna", "Ghế", 390m, 10, "Ghế papasan mây với đệm kem dày, dáng tròn thư giãn.", SeedImagePath + "ghe-papasan-luna.jpg"),
+        new("Kệ Modular", "Kệ", 315m, 12, "Kệ ô thấp bằng gỗ sồi nhạt, sáu ngăn vuông cho lưu trữ gọn.", SeedImagePath + "ke-modular.jpg"),
+        new("Bàn Console Sera", "Bàn", 340m, 9, "Bàn console gỗ sồi hẹp đi cùng gương tròn tối giản.", SeedImagePath + "ban-console-sera.jpg"),
+        new("Kệ TV Gallery", "Kệ TV", 610m, 6, "Kệ TV trắng dài với ngăn kéo thấp và chân gỗ mảnh.", SeedImagePath + "ke-tv-gallery.jpg"),
+        new("Ghế Windsor Oak", "Ghế", 280m, 11, "Ghế ăn gỗ sồi tự nhiên với lưng nan kiểu Windsor hiện đại.", SeedImagePath + "ghe-windsor-oak.jpg"),
+        new("Bàn Side Lola", "Bàn", 299m, 10, "Bàn phụ tròn gỗ sồi với chân trụ, hợp sofa và góc đọc sách.", SeedImagePath + "ban-side-lola.jpg"),
+        new("Đèn Bàn Facet", "Đèn", 284m, 13, "Đèn bàn gốm nhỏ với chụp vải be, ánh sáng ấm và dáng gọn.", SeedImagePath + "den-ban-facet.jpg"),
+        new("Đôn Boucle Sofia", "Đôn", 374m, 8, "Đôn tròn boucle màu kem, chất liệu mềm và dáng thấp hiện đại.", SeedImagePath + "don-boucle-sofia.jpg"),
+        new("Ghế Ăn Theodore", "Ghế", 322m, 10, "Ghế ăn bọc vải taupe, chân kim loại đen mảnh.", SeedImagePath + "ghe-an-theodore.jpg")
     ];
 
     public static async Task SeedAdminAsync(IServiceProvider services, bool allowDevelopmentDefaults = false)
@@ -73,11 +81,12 @@ public static class DatabaseSeeder
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
 
-        var seedNames = SeedProducts.Select(product => product.Name).ToList();
-        if (await db.Products.AnyAsync(product => seedNames.Contains(product.Name)))
+        if (await IsSeedCatalogCurrentAsync(db))
         {
             return;
         }
+
+        await ClearCatalogAsync(db);
 
         var categories = await EnsureCategoriesAsync(db);
 
@@ -96,6 +105,30 @@ public static class DatabaseSeeder
 
         await db.SaveChangesAsync();
         Console.WriteLine($"Seeded {SeedProducts.Length} furniture products.");
+    }
+
+    private static async Task<bool> IsSeedCatalogCurrentAsync(ShopDbContext db)
+    {
+        var seedNames = SeedProducts.Select(product => product.Name).ToList();
+        var productCount = await db.Products.CountAsync();
+        if (productCount != SeedProducts.Length)
+        {
+            return false;
+        }
+
+        return await db.Products.AllAsync(product =>
+            seedNames.Contains(product.Name) &&
+            product.ImageUrl != null &&
+            product.ImageUrl.StartsWith(SeedImagePath));
+    }
+
+    private static async Task ClearCatalogAsync(ShopDbContext db)
+    {
+        await db.CartItems.ExecuteDeleteAsync();
+        await db.OrderItems.ExecuteDeleteAsync();
+        await db.Orders.ExecuteDeleteAsync();
+        await db.Products.ExecuteDeleteAsync();
+        await db.Categories.ExecuteDeleteAsync();
     }
 
     private static async Task<Dictionary<string, Category>> EnsureCategoriesAsync(ShopDbContext db)

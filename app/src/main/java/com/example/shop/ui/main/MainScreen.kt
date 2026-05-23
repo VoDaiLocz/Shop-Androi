@@ -24,8 +24,6 @@ fun MainScreen(
         navController.currentBackStackEntryAsState().value?.destination?.route
 
     val showBottomBar = currentRoute in listOf(
-        Routes.HOME,
-        Routes.CART,
         Routes.PROFILE
     )
 

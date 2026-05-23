@@ -27,73 +27,74 @@ fun ProductItem(
     imageUrl: String,
     onClick: () -> Unit
 ) {
-    Column(
+    val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
+
+    Surface(
+        shape = ShopShapes.Card,
+        color = ShopColors.Surface,
+        tonalElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
+            .height(178.dp)
             .clickable { onClick() }
     ) {
-        val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(154.dp)
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(9.dp))
-                .background(ShopColors.Surface)
-                .padding(8.dp)
-        ) {
-            if (resolvedImageUrl.isBlank()) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = name,
-                    tint = ShopColors.Wood,
-                    modifier = Modifier
-                        .size(72.dp)
-                        .align(Alignment.Center)
-                )
-            } else {
-                AsyncImage(
-                    model = resolvedImageUrl,
-                    contentDescription = name,
-                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
-                    error = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                )
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(122.dp)
+                    .clip(ShopShapes.Image)
+                    .background(ShopColors.Surface),
+                contentAlignment = Alignment.Center
+            ) {
+                if (resolvedImageUrl.isBlank()) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = name,
+                        tint = ShopColors.Wood,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .align(Alignment.Center)
+                    )
+                } else {
+                    AsyncImage(
+                        model = resolvedImageUrl,
+                        contentDescription = name,
+                        placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                        error = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(0.dp)
+                    )
+                }
             }
 
             Text(
-                text = price,
-                color = ShopColors.WoodDark,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .background(ShopColors.Surface.copy(alpha = 0.9f), ShopShapes.Pill)
-                    .padding(horizontal = 7.dp, vertical = 4.dp)
+                text = name,
+                maxLines = 1,
+                style = MaterialTheme.typography.bodySmall,
+                color = ShopColors.TextPrimary,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(start = 10.dp, top = 8.dp, end = 10.dp)
             )
-        }
 
-        Text(
-            text = name,
-            maxLines = 2,
-            style = MaterialTheme.typography.bodySmall,
-            color = ShopColors.TextPrimary,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 7.dp, start = 8.dp, end = 8.dp)
-        )
-
-        if (discount.isNotBlank() || oldPrice.isNotBlank()) {
             Text(
-                text = listOf(oldPrice, discount).filter { it.isNotBlank() }.joinToString("  "),
+                text = price,
+                color = ShopColors.TextPrimary,
                 style = MaterialTheme.typography.labelSmall,
-                color = ShopColors.TextSecondary,
-                modifier = Modifier.padding(start = 6.dp, top = 2.dp)
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = 10.dp, top = 1.dp, end = 10.dp)
             )
+
+            if (discount.isNotBlank() || oldPrice.isNotBlank()) {
+                Text(
+                    text = listOf(oldPrice, discount).filter { it.isNotBlank() }.joinToString("  "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = ShopColors.TextSecondary,
+                    modifier = Modifier.padding(start = 10.dp, top = 2.dp, end = 10.dp)
+                )
+            }
         }
     }
 }

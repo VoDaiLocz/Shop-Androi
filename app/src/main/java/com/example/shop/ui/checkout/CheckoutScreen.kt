@@ -1,15 +1,41 @@
 package com.example.shop.ui.checkout
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.shop.ui.theme.ShopColors
+import com.example.shop.ui.theme.ShopShapes
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.OrderViewModel
 
@@ -28,28 +56,37 @@ fun CheckoutScreen(
     orderViewModel: OrderViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    //Lấy User hiện tại
     val currentUser by authViewModel.currentUser.collectAsState()
-
-    // Lấy giỏ hàng - OrderViewModel cần có hàm lấy cart theo UserId
-    // Nếu OrderViewModel chưa có, bạn nên truyền UserId vào init hoặc dùng collectAsState
     val cartItems by orderViewModel.cartItems.collectAsState()
-
-    var address by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
     val totalPrice = cartItems.sumOf { it.price * it.quantity }
 
+    var address by remember { mutableStateOf("123 Main St, Apt 4B\nNew York, NY 10001") }
+    var phoneNumber by remember { mutableStateOf("0900000000") }
+    var selectedPayment by remember { mutableStateOf("Visa **** 1234") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     Scaffold(
+        containerColor = ShopColors.Background,
         topBar = {
             TopAppBar(
-                title = { Text("Thanh toán") },
+                title = {
+                    Text(
+                        text = "Checkout",
+                        color = ShopColors.TextPrimary,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
                     }
-                }
+                },
+                actions = {
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.MoreHoriz, contentDescription = "More")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = ShopColors.Background)
             )
         }
     ) { paddingValues ->
@@ -57,106 +94,199 @@ fun CheckoutScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
-            Text(text = "Thông tin giao hàng", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Địa chỉ nhận hàng") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { Icon(Icons.Default.LocationOn, null) }
+            SectionTitle("Shipping Address")
+            AddressCard(
+                name = currentUser?.username?.ifBlank { "John Doe" } ?: "John Doe",
+                address = address,
+                onEdit = {
+                    address = if (address.startsWith("123 Main")) {
+                        "456 Oak Street\nNew York, NY 10002"
+                    } else {
+                        "123 Main St, Apt 4B\nNew York, NY 10001"
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = { Text("Số điện thoại") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { Icon(Icons.Default.Phone, null) }
+            SectionTitle("Payment Method")
+            PaymentOption("Visa **** 1234", selectedPayment) { selectedPayment = it }
+            PaymentOption("Mastercard **** 5678", selectedPayment) { selectedPayment = it }
+            PaymentOption("Apple Pay", selectedPayment) { selectedPayment = it }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            SectionTitle("Order Summary")
+            cartItems.take(2).forEach { item ->
+                SummaryLine(
+                    label = "${item.productName} x${item.quantity}",
+                    value = formatMoney(item.price * item.quantity)
+                )
+            }
+            SummaryLine(label = "Shipping", value = "Free", modifier = Modifier.padding(top = 6.dp))
+            HorizontalDivider(color = ShopColors.Border, modifier = Modifier.padding(top = 8.dp))
+            SummaryLine(
+                label = "Total",
+                value = formatMoney(totalPrice),
+                modifier = Modifier.padding(top = 9.dp),
+                valueWeight = FontWeight.Medium
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(text = "Tóm tắt đơn hàng", style = MaterialTheme.typography.titleMedium)
-
-            if (errorMessage != null) {
+            errorMessage?.let { message ->
                 Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
+                    text = message,
+                    color = ShopColors.Error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 12.dp)
                 )
             }
 
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(cartItems) { item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("${item.productName} x${item.quantity}", modifier = Modifier.weight(1f))
-                        Text("${item.price * item.quantity} VNĐ", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(30.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("Tổng cộng", fontSize = 14.sp)
-                        Text(
-                            text = "$totalPrice VNĐ",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Button(
-                        onClick = {
-                            val user = currentUser
-                            if (user != null && address.isNotBlank() && phoneNumber.isNotBlank()) {
-                                // 3. Gọi đặt hàng với user hiện tại qua backend.
-                                orderViewModel.placeOrder(
-                                    userId = user.id, // Đảm bảo dùng user.id không dùng 0
-                                    address = address,
-                                    phoneNumber = phoneNumber,
-                                    totalPrice = totalPrice
-                                ) { success ->
-                                    if (success) {
-                                        errorMessage = null
-                                        onPlaceOrder()
-                                    } else {
-                                        errorMessage = "Đặt hàng thất bại. Vui lòng kiểm tra giỏ hàng hoặc tồn kho."
-                                    }
-                                }
+            OutlinedButton(
+                onClick = {
+                    val user = currentUser
+                    if (user != null && cartItems.isNotEmpty()) {
+                        orderViewModel.placeOrder(
+                            userId = user.id,
+                            address = address,
+                            phoneNumber = phoneNumber,
+                            totalPrice = totalPrice
+                        ) { success ->
+                            if (success) {
+                                errorMessage = null
+                                onPlaceOrder()
+                            } else {
+                                errorMessage = "Đặt hàng thất bại. Vui lòng kiểm tra giỏ hàng hoặc tồn kho."
                             }
-                        },
-                        // Nút chỉ bật khi có đủ thông tin và có hàng trong giỏ
-                        enabled = cartItems.isNotEmpty() && address.isNotBlank() && phoneNumber.isNotBlank() && currentUser != null
-                    ) {
-                        Text("Xác nhận")
+                        }
                     }
-                }
+                },
+                enabled = cartItems.isNotEmpty() && currentUser != null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                shape = ShopShapes.Button,
+                border = BorderStroke(1.dp, ShopColors.TextPrimary),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = ShopColors.TextPrimary)
+            ) {
+                Text("Place Order")
             }
         }
     }
 }
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        color = ShopColors.TextPrimary,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(bottom = 9.dp)
+    )
+}
+
+@Composable
+private fun AddressCard(
+    name: String,
+    address: String,
+    onEdit: () -> Unit
+) {
+    Surface(
+        shape = ShopShapes.Card,
+        color = ShopColors.Surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, top = 10.dp, end = 10.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(name, color = ShopColors.TextPrimary, fontWeight = FontWeight.Medium)
+                Text(
+                    address,
+                    color = ShopColors.TextPrimary,
+                    style = MaterialTheme.typography.bodySmall,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+
+            TextButton(
+                onClick = onEdit,
+                border = BorderStroke(1.dp, ShopColors.TextPrimary),
+                shape = ShopShapes.Pill,
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text("Edit", color = ShopColors.TextPrimary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaymentOption(
+    label: String,
+    selectedPayment: String,
+    onSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(30.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = label == selectedPayment,
+            onClick = { onSelected(label) },
+            colors = RadioButtonDefaults.colors(
+                selectedColor = ShopColors.TextPrimary,
+                unselectedColor = ShopColors.TextSecondary
+            ),
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            label,
+            color = ShopColors.TextPrimary,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun SummaryLine(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueWeight: FontWeight = FontWeight.Normal
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            color = ShopColors.TextPrimary,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = value,
+            color = ShopColors.TextPrimary,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = valueWeight,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+    }
+}
+
+private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)

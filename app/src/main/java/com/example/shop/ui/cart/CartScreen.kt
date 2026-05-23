@@ -1,29 +1,28 @@
 package com.example.shop.ui.cart
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +37,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.shop.R
@@ -67,14 +68,19 @@ fun CartScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "My Cart",
+                        "Cart",
                         color = ShopColors.TextPrimary,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { }) {
+                        Icon(Icons.Default.MoreHoriz, contentDescription = "More")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = ShopColors.Background)
@@ -104,8 +110,8 @@ fun CartScreen(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize(),
-                contentPadding = PaddingValues(18.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items, key = { it.id }) { item ->
                     CartItemRow(
@@ -127,46 +133,69 @@ fun CartItemRow(
     onDecrease: () -> Unit,
     onDelete: () -> Unit
 ) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = ShopShapes.Card,
-        colors = CardDefaults.elevatedCardColors(containerColor = ShopColors.Surface),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
-    ) {
+    Column {
         Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.Top
         ) {
             CartProductImage(item = item)
 
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp)
+                    .padding(start = 12.dp, end = 8.dp)
             ) {
                 Text(
                     item.productName,
                     color = ShopColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2
-                )
-                Text(
-                    "${item.price} VNĐ",
-                    color = ShopColors.Wood,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Normal,
+                    lineHeight = 21.sp,
+                    maxLines = 2,
+                    modifier = Modifier.padding(top = 1.dp)
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDecrease) { Text("-", color = ShopColors.TextPrimary) }
-                    Text("${item.quantity}", color = ShopColors.TextPrimary)
-                    IconButton(onClick = onIncrease) { Text("+", color = ShopColors.TextPrimary) }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 9.dp)
+                ) {
+                    QuantityButton(text = "−", onClick = onDecrease)
+                    Text("${item.quantity}", color = ShopColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                    QuantityButton(text = "+", onClick = onIncrease)
                 }
             }
 
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-            }
+            Text(
+                formatMoney(item.price * item.quantity),
+                color = ShopColors.TextPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 50.dp)
+            )
+        }
+
+        HorizontalDivider(color = ShopColors.Border.copy(alpha = 0.7f))
+    }
+}
+
+@Composable
+private fun QuantityButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .size(27.dp)
+            .clickable(onClick = onClick),
+        shape = ShopShapes.Pill,
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, ShopColors.TextPrimary.copy(alpha = 0.45f))
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(text, color = ShopColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -177,7 +206,7 @@ private fun CartProductImage(item: CartItem) {
 
     Box(
         modifier = Modifier
-            .size(72.dp)
+            .size(86.dp)
             .clip(ShopShapes.Image)
             .background(ShopColors.SurfaceSoft),
         contentAlignment = Alignment.Center
@@ -200,34 +229,55 @@ private fun CartProductImage(item: CartItem) {
 @Composable
 fun BottomCheckoutSection(total: Double, onCheckout: () -> Unit) {
     Surface(
-        color = ShopColors.Surface,
-        shadowElevation = 6.dp
+        color = ShopColors.Background,
+        shadowElevation = 0.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
-            Column {
-                Text("Tổng tiền", color = ShopColors.TextSecondary)
-                Text(
-                    "$total VNĐ",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = ShopColors.WoodDark,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(14.dp))
+            SummaryLine(label = "Subtotal:", value = formatMoney(total))
+            SummaryLine(label = "Shipping:", value = "Free")
+            HorizontalDivider(color = ShopColors.Border, modifier = Modifier.padding(top = 5.dp))
+            SummaryLine(
+                label = "Total:",
+                value = formatMoney(total),
+                labelStyle = MaterialTheme.typography.titleMedium,
+                valueStyle = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 5.dp, bottom = 12.dp)
+            )
             Button(
                 onClick = onCheckout,
                 shape = ShopShapes.Button,
-                colors = ButtonDefaults.buttonColors(containerColor = ShopColors.WoodDark)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Thanh toán")
+                Text("Proceed to Checkout")
             }
         }
     }
 }
+
+@Composable
+private fun SummaryLine(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    labelStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyMedium,
+    valueStyle: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyMedium
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, color = ShopColors.TextPrimary, style = labelStyle)
+        Text(value, color = ShopColors.TextPrimary, style = valueStyle, fontWeight = FontWeight.Medium)
+    }
+}
+
+private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)

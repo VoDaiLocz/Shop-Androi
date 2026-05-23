@@ -1,6 +1,7 @@
 package com.example.shop.ui.product
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +17,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,7 +86,7 @@ fun ProductDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
                     }
                 },
                 actions = {
@@ -148,70 +150,39 @@ fun ProductDetailScreen(
                 name = item.name
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = item.name,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 color = ShopColors.TextPrimary,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 30.sp
+                fontWeight = FontWeight.Normal,
+                lineHeight = 31.sp
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "Color",
+                style = MaterialTheme.typography.labelSmall,
+                color = ShopColors.TextPrimary
+            )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                modifier = Modifier.padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(11.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Price",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ShopColors.TextSecondary
-                    )
-                    Text(
-                        text = "${item.price} VNĐ",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = ShopColors.WoodDark,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Surface(
-                    shape = ShopShapes.Pill,
-                    color = if (item.quantity > 0) ShopColors.Surface else ShopColors.SurfaceSoft
-                ) {
-                    Text(
-                        text = if (item.quantity > 0) "Còn ${item.quantity}" else "Hết hàng",
-                        color = if (item.quantity > 0) ShopColors.Wood else MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
-                    )
-                }
+                ColorSwatch(color = Color(0xFFF1EAD9), selected = true)
+                ColorSwatch(color = Color(0xFFC8B9A8), selected = false)
+                ColorSwatch(color = Color(0xFF5A4638), selected = false)
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-            Text(
-                text = "Description",
-                style = MaterialTheme.typography.titleMedium,
-                color = ShopColors.TextPrimary,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = if (item.description.isBlank()) {
-                    "Không có mô tả cho sản phẩm này."
-                } else {
-                    item.description
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = ShopColors.TextSecondary,
-                lineHeight = 22.sp,
-                modifier = Modifier.padding(top = 8.dp)
+            ProductInfoCard(
+                price = formatMoney(item.price),
+                description = item.description
             )
 
             errorMessage?.let { message ->
@@ -234,16 +205,17 @@ private fun ProductHeroImage(
     name: String
 ) {
     val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
+    val hasImage = resolvedImageUrl.isNotBlank()
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(360.dp)
+            .height(158.dp)
             .clip(ShopShapes.Card)
-            .background(ShopColors.SurfaceSoft),
+            .background(ShopColors.Promo),
         contentAlignment = Alignment.Center
     ) {
-        if (resolvedImageUrl.isBlank()) {
+        if (!hasImage) {
             Text(
                 text = "Furniture",
                 color = ShopColors.Wood,
@@ -264,6 +236,75 @@ private fun ProductHeroImage(
 }
 
 @Composable
+private fun ColorSwatch(
+    color: Color,
+    selected: Boolean
+) {
+    Surface(
+        shape = ShopShapes.Pill,
+        color = color,
+        border = if (selected) BorderStroke(1.dp, ShopColors.TextPrimary) else null,
+        modifier = Modifier.size(25.dp)
+    ) {}
+}
+
+@Composable
+private fun ProductInfoCard(
+    price: String,
+    description: String
+) {
+    Surface(
+        shape = ShopShapes.Card,
+        color = ShopColors.Surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 12.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(0.86f)) {
+                Text(
+                    text = "Price",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = ShopColors.TextSecondary
+                )
+                Text(
+                    text = price,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = ShopColors.TextPrimary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(40.dp)
+                    .background(ShopColors.Border)
+            )
+
+            Text(
+                text = if (description.isBlank()) {
+                    "Inspired by the footstools found in club spaces and bedrooms at Soho House."
+                } else {
+                    description
+                },
+                style = MaterialTheme.typography.labelSmall,
+                color = ShopColors.TextSecondary,
+                lineHeight = 13.sp,
+                maxLines = 3,
+                modifier = Modifier
+                    .weight(1.14f)
+                    .padding(start = 10.dp)
+            )
+        }
+    }
+}
+
+@Composable
 private fun DetailBottomBar(
     enabled: Boolean,
     onClick: () -> Unit
@@ -272,25 +313,24 @@ private fun DetailBottomBar(
         color = ShopColors.Background,
         shadowElevation = 0.dp
     ) {
-        Button(
+        OutlinedButton(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .padding(horizontal = 18.dp, vertical = 12.dp)
-                .height(56.dp),
+                .height(45.dp),
             shape = ShopShapes.Button,
             enabled = enabled,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = ShopColors.WoodDark,
-                contentColor = ShopColors.Surface,
-                disabledContainerColor = ShopColors.Border,
+            border = BorderStroke(1.dp, if (enabled) ShopColors.TextPrimary else ShopColors.Border),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = ShopColors.TextPrimary,
                 disabledContentColor = ShopColors.TextSecondary
             )
         ) {
-            Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(if (enabled) "Thêm vào giỏ hàng" else "Hết hàng")
+            Text(if (enabled) "Buy Now" else "Hết hàng")
         }
     }
 }
+
+private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)
