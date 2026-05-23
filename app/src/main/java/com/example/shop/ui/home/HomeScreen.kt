@@ -65,8 +65,8 @@ fun HomeScreen(
             .fillMaxSize()
             .background(ShopColors.Background),
         contentPadding = PaddingValues(18.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             HomeHeader(onOpenCart = onOpenCart)
@@ -77,19 +77,10 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Text(
-                text = "Categories",
-                style = MaterialTheme.typography.titleMedium,
-                color = ShopColors.TextPrimary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
-
-        item(span = { GridItemSpan(maxLineSpan) }) {
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(vertical = 2.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(vertical = 2.dp),
+                modifier = Modifier.padding(top = 6.dp)
             ) {
                 item {
                     CategoryChip(
@@ -113,16 +104,11 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
+                    .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Popular Furniture",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = ShopColors.TextPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(text = "Popular Furniture", style = MaterialTheme.typography.titleMedium, color = ShopColors.TextPrimary, fontWeight = FontWeight.Bold)
                 Text(
                     text = "${products.size} items",
                     style = MaterialTheme.typography.bodySmall,
@@ -134,7 +120,7 @@ fun HomeScreen(
         items(products.take(10), key = { product -> product.id }) { product ->
             ProductItem(
                 name = product.name,
-                price = "${product.price} VNĐ",
+                price = "$${product.price.toInt()}",
                 oldPrice = "",
                 discount = "",
                 imageUrl = product.imageUrl,
@@ -180,7 +166,7 @@ private fun PromoBanner(imageUrl: String) {
     val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
 
     Surface(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
         color = ShopColors.Surface,
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -189,35 +175,19 @@ private fun PromoBanner(imageUrl: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(122.dp)
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                .background(ShopColors.Surface)
         ) {
-            if (resolvedImageUrl.isBlank()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(ShopColors.SurfaceSoft)
-                )
-            } else {
-                AsyncImage(
-                    model = resolvedImageUrl,
-                    contentDescription = "Promo furniture",
-                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
-                    error = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(ShopColors.Surface.copy(alpha = 0.58f))
+                    .background(ShopColors.Surface)
             )
 
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 16.dp, end = 132.dp)
+                    .padding(start = 14.dp, end = 138.dp)
             ) {
                 Text(
                     text = "Promo for first purchase",
@@ -225,7 +195,7 @@ private fun PromoBanner(imageUrl: String) {
                     color = ShopColors.TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Special Offers",
                     style = MaterialTheme.typography.bodySmall,
@@ -236,6 +206,21 @@ private fun PromoBanner(imageUrl: String) {
                     style = MaterialTheme.typography.bodyLarge,
                     color = ShopColors.WoodDark,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (resolvedImageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = resolvedImageUrl,
+                    contentDescription = "Promo furniture",
+                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxWidth(0.46f)
+                        .height(112.dp)
+                        .padding(end = 8.dp)
                 )
             }
         }
@@ -251,12 +236,12 @@ fun CategoryChip(
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = ShopShapes.Pill,
-        color = if (isSelected) ShopColors.WoodDark else ShopColors.Surface,
-        border = if (isSelected) null else BorderStroke(1.dp, ShopColors.Border)
+        color = if (isSelected) ShopColors.WoodDark else ShopColors.Background,
+        border = if (isSelected) BorderStroke(1.dp, ShopColors.WoodDark) else null
     ) {
         Text(
             text = name,
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 9.dp),
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
             style = MaterialTheme.typography.labelMedium,
             color = if (isSelected) ShopColors.Surface else ShopColors.TextPrimary,
             fontWeight = FontWeight.Bold

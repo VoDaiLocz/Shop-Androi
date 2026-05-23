@@ -12,14 +12,14 @@ public static class DatabaseSeeder
 
     private static readonly SeedProduct[] SeedProducts =
     [
-        new("Sofa Oslo Cream", "Sofa", 12900000m, 12, "Sofa vải màu kem phong cách tối giản, phù hợp phòng khách nhỏ và căn hộ hiện đại.", "https://images.pexels.com/photos/1866149/pexels-photo-1866149.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Sofa Nora Beige", "Sofa", 15900000m, 8, "Sofa nệm rộng với tone be ấm, tạo cảm giác mềm mại và sang cho không gian sống.", "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Ghế Gỗ Theodore", "Ghế", 3490000m, 18, "Ghế gỗ tự nhiên kết hợp đệm ngồi, thiết kế thanh mảnh cho bàn ăn hoặc góc đọc sách.", "https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Ghế Lounge Aster", "Ghế", 4690000m, 10, "Ghế lounge thư giãn với dáng cong mềm, điểm nhấn nổi bật cho phòng khách.", "https://images.pexels.com/photos/276583/pexels-photo-276583.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Bàn Cafe Mellow", "Bàn", 2890000m, 15, "Bàn cafe nhỏ gọn, mặt bàn tối giản dễ phối với sofa và thảm phòng khách.", "https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Bàn Ăn Haven", "Bàn", 8990000m, 7, "Bàn ăn gia đình tone gỗ ấm, bề mặt rộng và thiết kế sạch cho không gian bếp hiện đại.", "https://images.pexels.com/photos/1571453/pexels-photo-1571453.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Giường Linen Calm", "Giường", 11900000m, 6, "Giường ngủ bọc vải sáng màu, thiết kế thấp và êm cho phòng ngủ tối giản.", "https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg?auto=compress&cs=tinysrgb&w=900"),
-        new("Tủ Gỗ Carlisle", "Tủ", 7590000m, 9, "Tủ gỗ thấp nhiều ngăn, dùng làm kệ TV hoặc tủ lưu trữ trong phòng khách.", "https://images.pexels.com/photos/2062431/pexels-photo-2062431.jpeg?auto=compress&cs=tinysrgb&w=900")
+        new("Carlisle Double", "Tủ", 583m, 9, "Tủ gỗ thấp nhiều ngăn, dùng làm kệ TV hoặc tủ lưu trữ trong phòng khách.", "https://images.pexels.com/photos/2082090/pexels-photo-2082090.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Facet Table Lamp", "Đèn", 284m, 15, "Đèn bàn dáng thanh mảnh, ánh sáng ấm cho phòng ngủ hoặc góc đọc sách.", "https://images.pexels.com/photos/534151/pexels-photo-534151.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Sofa Footstool", "Sofa", 495m, 12, "Ghế đôn bọc vải sáng màu, dễ phối cùng sofa và bàn trà tối giản.", "https://images.pexels.com/photos/116910/pexels-photo-116910.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Theodore Chair", "Ghế", 322m, 18, "Ghế gỗ tự nhiên kết hợp đệm ngồi, thiết kế thanh mảnh cho bàn ăn hoặc góc đọc sách.", "https://images.pexels.com/photos/2762247/pexels-photo-2762247.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Nora Lounge", "Ghế", 423m, 10, "Ghế lounge thư giãn với dáng cong mềm, điểm nhấn nổi bật cho phòng khách.", "https://images.pexels.com/photos/6580221/pexels-photo-6580221.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Mellow Coffee Table", "Bàn", 369m, 15, "Bàn cafe nhỏ gọn, mặt bàn tối giản dễ phối với sofa và thảm phòng khách.", "https://images.pexels.com/photos/1090638/pexels-photo-1090638.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Haven Dining Table", "Bàn", 512m, 7, "Bàn ăn gia đình tone gỗ ấm, bề mặt rộng và thiết kế sạch cho không gian bếp hiện đại.", "https://images.pexels.com/photos/1571468/pexels-photo-1571468.jpeg?auto=compress&cs=tinysrgb&w=900"),
+        new("Linen Calm Bed", "Giường", 642m, 6, "Giường ngủ bọc vải sáng màu, thiết kế thấp và êm cho phòng ngủ tối giản.", "https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg?auto=compress&cs=tinysrgb&w=900")
     ];
 
     public static async Task SeedAdminAsync(IServiceProvider services, bool allowDevelopmentDefaults = false)
@@ -73,7 +73,8 @@ public static class DatabaseSeeder
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
 
-        if (await db.Products.AnyAsync())
+        var seedNames = SeedProducts.Select(product => product.Name).ToList();
+        if (await db.Products.AnyAsync(product => seedNames.Contains(product.Name)))
         {
             return;
         }

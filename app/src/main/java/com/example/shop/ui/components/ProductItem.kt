@@ -37,8 +37,8 @@ fun ProductItem(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
-                .clip(ShopShapes.Image)
+                .height(154.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(9.dp))
                 .background(ShopColors.Surface)
                 .padding(8.dp)
         ) {
@@ -57,10 +57,10 @@ fun ProductItem(
                     contentDescription = name,
                     placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
                     error = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(ShopShapes.Image)
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
                 )
             }
 
@@ -71,8 +71,8 @@ fun ProductItem(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .background(ShopColors.Surface.copy(alpha = 0.88f), ShopShapes.Pill)
-                    .padding(horizontal = 8.dp, vertical = 5.dp)
+                    .background(ShopColors.Surface.copy(alpha = 0.9f), ShopShapes.Pill)
+                    .padding(horizontal = 7.dp, vertical = 4.dp)
             )
         }
 
@@ -84,7 +84,7 @@ fun ProductItem(
             fontWeight = FontWeight.Medium,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, start = 6.dp, end = 6.dp)
+                .padding(top = 7.dp, start = 8.dp, end = 8.dp)
         )
 
         if (discount.isNotBlank() || oldPrice.isNotBlank()) {
