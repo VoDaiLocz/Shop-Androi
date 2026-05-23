@@ -1,3 +1,5 @@
+package com.example.shop.navigation
+
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
@@ -6,6 +8,7 @@ object Routes {
     const val PRODUCT_DETAIL = "product_detail"
     const val CART = "cart"
     const val CHECKOUT = "checkout"
+    const val PAYMENT_QR = "payment_qr"
     const val ORDER = "order"
     const val PROFILE = "profile"
     const val SETTINGS = "settings"

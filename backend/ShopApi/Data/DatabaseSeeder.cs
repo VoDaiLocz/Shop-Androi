@@ -109,15 +109,20 @@ public static class DatabaseSeeder
 
     private static async Task<bool> IsSeedCatalogCurrentAsync(ShopDbContext db)
     {
-        var seedNames = SeedProducts.Select(product => product.Name).ToList();
-        var productCount = await db.Products.CountAsync();
-        if (productCount != SeedProducts.Length)
+        var seedPrices = SeedProducts.ToDictionary(product => product.Name, product => product.Price);
+        var products = await db.Products
+            .AsNoTracking()
+            .Select(product => new { product.Name, product.Price, product.ImageUrl })
+            .ToListAsync();
+
+        if (products.Count != SeedProducts.Length)
         {
             return false;
         }
 
-        return await db.Products.AllAsync(product =>
-            seedNames.Contains(product.Name) &&
+        return products.All(product =>
+            seedPrices.ContainsKey(product.Name) &&
+            seedPrices[product.Name] == product.Price &&
             product.ImageUrl != null &&
             product.ImageUrl.StartsWith(SeedImagePath));
     }

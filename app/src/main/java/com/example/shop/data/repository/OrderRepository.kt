@@ -5,6 +5,8 @@ import com.example.shop.data.model.Order
 import com.example.shop.data.model.OrderWithItems
 import com.example.shop.data.remote.api.OrderApi
 import com.example.shop.data.remote.dto.CreateOrderRequest
+import com.example.shop.data.remote.dto.OrderPaymentStatusResponse
+import com.example.shop.data.remote.dto.OrderResponse
 import com.example.shop.data.remote.dto.UpdateOrderStatusRequest
 import com.example.shop.data.remote.dto.toOrderWithItems
 import kotlinx.coroutines.flow.Flow
@@ -28,21 +30,30 @@ class OrderRepository @Inject constructor(
         emitAll(_myOrders.asStateFlow())
     }
 
-    suspend fun placeOrder(order: Order, cartItems: List<CartItem>): Boolean {
-        val authorization = authRepository.getAuthorizationHeader() ?: return false
-        if (cartItems.isEmpty()) return false
+    suspend fun placeOrder(order: Order, cartItems: List<CartItem>): OrderResponse? {
+        val authorization = authRepository.getAuthorizationHeader() ?: return null
+        if (cartItems.isEmpty()) return null
 
         return runCatching {
             val createdOrder = orderApi.createOrder(
                 authorization,
                 CreateOrderRequest(
                     address = order.address,
-                    phoneNumber = order.phoneNumber
+                    phoneNumber = order.phoneNumber,
+                    paymentMethod = order.paymentMethod
                 )
             )
             _myOrders.value = listOf(createdOrder.toOrderWithItems()) + _myOrders.value
-            true
-        }.getOrDefault(false)
+            createdOrder
+        }.getOrNull()
+    }
+
+    suspend fun getPaymentStatus(orderId: Int): OrderPaymentStatusResponse? {
+        val authorization = authRepository.getAuthorizationHeader() ?: return null
+
+        return runCatching {
+            orderApi.getPaymentStatus(authorization, orderId)
+        }.getOrNull()
     }
 
     fun getALLOrders(): Flow<List<OrderWithItems>> = flow {

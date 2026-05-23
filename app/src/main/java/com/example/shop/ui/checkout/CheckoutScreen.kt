@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.ui.theme.ShopColors
 import com.example.shop.ui.theme.ShopShapes
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.OrderViewModel
 
@@ -52,7 +53,7 @@ import com.example.shop.viewmodel.OrderViewModel
 @Composable
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
-    onPlaceOrder: () -> Unit,
+    onOrderCreated: (Int, String) -> Unit,
     orderViewModel: OrderViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -62,7 +63,7 @@ fun CheckoutScreen(
 
     var address by remember { mutableStateOf("123 Main St, Apt 4B\nNew York, NY 10001") }
     var phoneNumber by remember { mutableStateOf("0900000000") }
-    var selectedPayment by remember { mutableStateOf("Visa **** 1234") }
+    var selectedPayment by remember { mutableStateOf("SEPAY") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
@@ -113,9 +114,8 @@ fun CheckoutScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             SectionTitle("Payment Method")
-            PaymentOption("Visa **** 1234", selectedPayment) { selectedPayment = it }
-            PaymentOption("Mastercard **** 5678", selectedPayment) { selectedPayment = it }
-            PaymentOption("Apple Pay", selectedPayment) { selectedPayment = it }
+            PaymentOption("Chuyển khoản SePay", "SEPAY", selectedPayment) { selectedPayment = it }
+            PaymentOption("Thanh toán khi nhận hàng", "COD", selectedPayment) { selectedPayment = it }
 
             Spacer(modifier = Modifier.height(28.dp))
 
@@ -154,13 +154,14 @@ fun CheckoutScreen(
                             userId = user.id,
                             address = address,
                             phoneNumber = phoneNumber,
-                            totalPrice = totalPrice
-                        ) { success ->
-                            if (success) {
+                            totalPrice = totalPrice,
+                            paymentMethod = selectedPayment
+                        ) { order ->
+                            if (order != null) {
                                 errorMessage = null
-                                onPlaceOrder()
+                                onOrderCreated(order.id, order.paymentMethod)
                             } else {
-                                errorMessage = "Đặt hàng thất bại. Vui lòng kiểm tra giỏ hàng hoặc tồn kho."
+                                errorMessage = "Đặt hàng thất bại. Vui lòng kiểm tra giỏ hàng, tồn kho hoặc cấu hình SePay."
                             }
                         }
                     }
@@ -233,6 +234,7 @@ private fun AddressCard(
 @Composable
 private fun PaymentOption(
     label: String,
+    value: String,
     selectedPayment: String,
     onSelected: (String) -> Unit
 ) {
@@ -243,8 +245,8 @@ private fun PaymentOption(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
-            selected = label == selectedPayment,
-            onClick = { onSelected(label) },
+            selected = value == selectedPayment,
+            onClick = { onSelected(value) },
             colors = RadioButtonDefaults.colors(
                 selectedColor = ShopColors.TextPrimary,
                 unselectedColor = ShopColors.TextSecondary
@@ -289,4 +291,4 @@ private fun SummaryLine(
     }
 }
 
-private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)
+private fun formatMoney(value: Double): String = value.formatVnd()

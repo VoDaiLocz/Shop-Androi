@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.data.model.OrderWithItems
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.OrderViewModel
 import java.text.SimpleDateFormat
@@ -85,7 +86,7 @@ fun OrderHistoryCard(orderWithItems: OrderWithItems) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Tổng tiền: ${orderWithItems.order.totalPrice} VNĐ",
+                text = "Tổng tiền: ${orderWithItems.order.totalPrice.formatVnd()}",
                 modifier = Modifier.align(Alignment.End),
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp

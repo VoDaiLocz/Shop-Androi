@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.shop.ui.components.ProductItem
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +75,7 @@ fun ProductScreen(
                 items(filteredProducts) { product ->
                     ProductItem(
                         name = product.name,
-                        price = "${product.price} VNĐ",
+                        price = product.price.formatVnd(),
                         oldPrice = "",
                         discount = "",
                         imageUrl = product.imageUrl,

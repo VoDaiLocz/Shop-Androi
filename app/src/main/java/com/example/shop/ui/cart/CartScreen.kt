@@ -50,6 +50,7 @@ import com.example.shop.data.model.CartItem
 import com.example.shop.ui.theme.ShopColors
 import com.example.shop.ui.theme.ShopShapes
 import com.example.shop.utils.Constants
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -280,4 +281,4 @@ private fun SummaryLine(
     }
 }
 
-private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)
+private fun formatMoney(value: Double): String = value.formatVnd()

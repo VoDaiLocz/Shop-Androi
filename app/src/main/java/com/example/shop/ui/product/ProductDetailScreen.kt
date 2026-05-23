@@ -55,6 +55,7 @@ import com.example.shop.data.model.CartItem
 import com.example.shop.ui.theme.ShopColors
 import com.example.shop.ui.theme.ShopShapes
 import com.example.shop.utils.Constants
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.AuthViewModel
 import com.example.shop.viewmodel.CartViewModel
 
@@ -333,4 +334,4 @@ private fun DetailBottomBar(
     }
 }
 
-private fun formatMoney(value: Double): String = "$" + String.format("%.2f", value)
+private fun formatMoney(value: Double): String = value.formatVnd()

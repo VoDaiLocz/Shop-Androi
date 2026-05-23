@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.shop.navigation.MainNavGraph
+import com.example.shop.navigation.Routes
 import com.example.shop.ui.components.BottomBar
 import com.example.shop.viewmodel.CartViewModel
 
@@ -24,6 +25,8 @@ fun MainScreen(
         navController.currentBackStackEntryAsState().value?.destination?.route
 
     val showBottomBar = currentRoute in listOf(
+        Routes.HOME,
+        Routes.CART,
         Routes.PROFILE
     )
 

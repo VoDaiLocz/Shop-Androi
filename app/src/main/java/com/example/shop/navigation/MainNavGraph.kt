@@ -23,6 +23,7 @@ import com.example.shop.ui.auth.LoginScreen
 import com.example.shop.ui.auth.RegisterScreen
 import com.example.shop.ui.cart.CartScreen
 import com.example.shop.ui.checkout.CheckoutScreen
+import com.example.shop.ui.checkout.PaymentQrScreen
 import com.example.shop.ui.home.HomeScreen
 import com.example.shop.ui.order.OrderScreen
 import com.example.shop.ui.product.ProductDetailScreen
@@ -196,7 +197,27 @@ fun MainNavGraph(
         composable(Routes.CHECKOUT) {
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onPlaceOrder = {
+                onOrderCreated = { orderId, paymentMethod ->
+                    if (paymentMethod.equals("SEPAY", ignoreCase = true)) {
+                        navController.navigate("${Routes.PAYMENT_QR}/$orderId")
+                    } else {
+                        navController.navigate(Routes.ORDER) {
+                            popUpTo(Routes.HOME) { inclusive = false }
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = "${Routes.PAYMENT_QR}/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+            PaymentQrScreen(
+                orderId = orderId,
+                onNavigateBack = { navController.popBackStack() },
+                onPaid = {
                     navController.navigate(Routes.ORDER) {
                         popUpTo(Routes.HOME) { inclusive = false }
                     }

@@ -20,7 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +43,7 @@ import com.example.shop.data.model.Category
 import com.example.shop.ui.components.ProductItem
 import com.example.shop.ui.theme.ShopColors
 import com.example.shop.ui.theme.ShopShapes
+import com.example.shop.utils.formatVnd
 import com.example.shop.viewmodel.ProductViewModel
 import com.example.shop.viewmodel.UserCategoryViewModel
 
@@ -84,7 +85,7 @@ fun HomeScreen(
         items(products.take(10), key = { product -> product.id }) { product ->
             ProductItem(
                 name = product.name,
-                price = "$${product.price.toInt()}",
+                price = product.price.formatVnd(),
                 oldPrice = "",
                 discount = "",
                 imageUrl = product.imageUrl,
@@ -115,7 +116,7 @@ private fun HomeHeader(onOpenCart: () -> Unit) {
         )
 
         IconButton(onClick = onOpenCart, modifier = Modifier.size(38.dp)) {
-            Icon(Icons.Default.Search, contentDescription = "Search", tint = ShopColors.TextPrimary)
+            Icon(Icons.Default.ShoppingCart, contentDescription = "Cart", tint = ShopColors.TextPrimary)
         }
     }
 }

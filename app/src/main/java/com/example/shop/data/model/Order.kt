@@ -7,5 +7,7 @@ data class Order(
     val totalPrice: Double,
     val status: String = "Pending",
     val address: String,
-    val phoneNumber: String
+    val phoneNumber: String,
+    val paymentMethod: String = "COD",
+    val paymentStatus: String = "Pending"
 )

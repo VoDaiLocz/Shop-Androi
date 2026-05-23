@@ -111,6 +111,12 @@ public class ShopDbContext : DbContext
             entity.Property(order => order.Address).HasMaxLength(500).IsRequired();
             entity.Property(order => order.PhoneNumber).HasMaxLength(30).IsRequired();
             entity.Property(order => order.PaymentMethod).HasMaxLength(20).IsRequired();
+            entity.Property(order => order.PaymentStatus).HasMaxLength(20).IsRequired();
+            entity.Property(order => order.PaymentCode).HasMaxLength(40);
+            entity.Property(order => order.SepayTransactionId).HasMaxLength(64);
+            entity.Property(order => order.SepayReferenceCode).HasMaxLength(120);
+            entity.HasIndex(order => order.PaymentCode).IsUnique();
+            entity.HasIndex(order => order.SepayTransactionId).IsUnique();
 
             entity.HasOne(order => order.User)
                 .WithMany(user => user.Orders)

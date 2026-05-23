@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shop.data.model.CartItem
 import com.example.shop.data.model.Order
+import com.example.shop.data.remote.dto.OrderPaymentStatusResponse
+import com.example.shop.data.remote.dto.OrderResponse
 import com.example.shop.data.repository.AuthRepository
 import com.example.shop.data.repository.CartRepository
 import com.example.shop.data.repository.OrderRepository
@@ -51,7 +53,8 @@ class OrderViewModel @Inject constructor(
         address: String,
         phoneNumber: String,
         totalPrice: Double,
-        onResult: (Boolean) -> Unit
+        paymentMethod: String,
+        onResult: (OrderResponse?) -> Unit
     ) {
         viewModelScope.launch {
             val items = cartItems.value
@@ -62,17 +65,28 @@ class OrderViewModel @Inject constructor(
                     totalPrice = totalPrice,
                     address = address,
                     phoneNumber = phoneNumber,
-                    status = "Pending"
+                    status = "Pending",
+                    paymentMethod = paymentMethod
                 )
-                val success = orderRepository.placeOrder(newOrder, items)
-                if (success) {
+                val createdOrder = orderRepository.placeOrder(newOrder, items)
+                if (createdOrder?.paymentMethod == "COD") {
                     cartRepository.refreshCart()
                 }
-                onResult(success)
+                onResult(createdOrder)
             } else {
-                onResult(false)
+                onResult(null)
             }
         }
+    }
+
+    fun refreshCart() {
+        viewModelScope.launch {
+            cartRepository.refreshCart()
+        }
+    }
+
+    suspend fun getPaymentStatus(orderId: Int): OrderPaymentStatusResponse? {
+        return orderRepository.getPaymentStatus(orderId)
     }
 
     // Lấy lịch sử đơn hàng của người dùng hiện tại

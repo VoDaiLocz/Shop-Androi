@@ -17,6 +17,9 @@ data class OrderResponse(
     val address: String,
     val phoneNumber: String,
     val paymentMethod: String,
+    val paymentStatus: String,
+    val paymentCode: String?,
+    val paymentQrUrl: String?,
     val items: List<OrderItemResponse>
 )
 
@@ -40,6 +43,16 @@ data class UpdateOrderStatusRequest(
     val status: String
 )
 
+data class OrderPaymentStatusResponse(
+    val orderId: Int,
+    val totalPrice: Double,
+    val status: String,
+    val paymentMethod: String,
+    val paymentStatus: String,
+    val paymentCode: String?,
+    val paymentQrUrl: String?
+)
+
 fun OrderResponse.toOrderWithItems(): OrderWithItems {
     return OrderWithItems(
         order = Order(
@@ -49,7 +62,9 @@ fun OrderResponse.toOrderWithItems(): OrderWithItems {
             totalPrice = totalPrice,
             status = status,
             address = address,
-            phoneNumber = phoneNumber
+            phoneNumber = phoneNumber,
+            paymentMethod = paymentMethod,
+            paymentStatus = paymentStatus
         ),
         items = items.map { item ->
             OrderItem(

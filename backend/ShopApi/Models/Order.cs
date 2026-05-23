@@ -10,6 +10,11 @@ public class Order
     public required string Address { get; set; }
     public required string PhoneNumber { get; set; }
     public string PaymentMethod { get; set; } = "COD";
+    public string PaymentStatus { get; set; } = "Pending";
+    public string? PaymentCode { get; set; }
+    public string? SepayTransactionId { get; set; }
+    public string? SepayReferenceCode { get; set; }
+    public DateTime? PaidAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
