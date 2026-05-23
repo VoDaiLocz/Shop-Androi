@@ -6,8 +6,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.shop.ui.theme.ShopColors
 
 @Composable
 fun BottomBar(
@@ -18,7 +20,10 @@ fun BottomBar(
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = ShopColors.Surface,
+        tonalElevation = 0.dp
+    ) {
         NavigationBarItem(
             selected = currentRoute == Routes.HOME,
             onClick = {
@@ -30,7 +35,8 @@ fun BottomBar(
             icon = {
                 Icon(Icons.Default.Home, contentDescription = "Home")
             },
-            label = { Text("Home") }
+            label = { Text("Home") },
+            colors = odadingNavigationItemColors()
         )
 
         NavigationBarItem(
@@ -56,7 +62,8 @@ fun BottomBar(
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
                 }
             },
-            label = { Text("Cart") }
+            label = { Text("Cart") },
+            colors = odadingNavigationItemColors()
         )
 
         NavigationBarItem(
@@ -70,7 +77,17 @@ fun BottomBar(
             icon = {
                 Icon(Icons.Default.Person, contentDescription = "Profile")
             },
-            label = { Text("Profile") }
+            label = { Text("Profile") },
+            colors = odadingNavigationItemColors()
         )
     }
 }
+
+@Composable
+private fun odadingNavigationItemColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = ShopColors.WoodDark,
+    selectedTextColor = ShopColors.WoodDark,
+    indicatorColor = ShopColors.SurfaceSoft,
+    unselectedIconColor = ShopColors.TextSecondary,
+    unselectedTextColor = ShopColors.TextSecondary
+)

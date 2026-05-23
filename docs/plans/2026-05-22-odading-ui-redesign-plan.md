@@ -371,4 +371,14 @@ Sau mỗi checkpoint:
 
 ## 7. Trạng Thái Hiện Tại
 
-Chưa triển khai code UI. Tài liệu này dùng để chốt phạm vi trước khi bắt đầu Checkpoint UI-01.
+Cập nhật 2026-05-23:
+
+- Checkpoint UI-01 đã hoàn tất: thêm `ShopDesign.kt` và đổi Material color scheme sang tone Odading.
+- Checkpoint UI-02 đã hoàn tất: redesign `ProductItem.kt`.
+- Checkpoint UI-03 đã hoàn tất: redesign `HomeScreen.kt`.
+- Checkpoint UI-04 đã hoàn tất: redesign `ProductDetailScreen.kt`.
+- Checkpoint UI-05 đã hoàn tất: redesign `BottomBar.kt`.
+- Checkpoint UI-06 đã hoàn tất: chỉnh nhẹ `CartScreen.kt`, `ProfileScreen.kt`, `LoginScreen.kt`.
+- Checkpoint UI-07 đã verify: Android debug build pass, emulator cài và launch được `com.example.shop/.MainActivity`.
+
+Các thay đổi chỉ nằm ở UI Jetpack Compose. Backend, REST API, ViewModel, DTO và navigation route không đổi.

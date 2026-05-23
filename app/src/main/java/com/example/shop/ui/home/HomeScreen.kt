@@ -1,27 +1,49 @@
 package com.example.shop.ui.home
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.ui.components.ProductItem
+import com.example.shop.ui.theme.ShopColors
+import com.example.shop.ui.theme.ShopShapes
 import com.example.shop.viewmodel.ProductViewModel
 import com.example.shop.viewmodel.UserCategoryViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onOpenProduct: (String) -> Unit,
@@ -33,70 +55,170 @@ fun HomeScreen(
     val products by productViewModel.products.collectAsState()
     val categories by categoryViewModel.categories.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text("Shop của tôi", fontWeight = FontWeight.Bold) },
-            actions = {
-                IconButton(onClick = { onOpenCart() }) {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = "Giỏ hàng")
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ShopColors.Background),
+        contentPadding = PaddingValues(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            HomeHeader(onOpenCart = onOpenCart)
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            PromoBanner()
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(
+                text = "Categories",
+                style = MaterialTheme.typography.titleMedium,
+                color = ShopColors.TextPrimary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(vertical = 2.dp)
+            ) {
+                item {
+                    CategoryChip(
+                        name = "ALL",
+                        isSelected = true,
+                        onClick = { onOpenCategory(-1) }
+                    )
+                }
+
+                items(categories) { category ->
+                    CategoryChip(
+                        name = category.name.uppercase(),
+                        isSelected = false,
+                        onClick = { onOpenCategory(category.id) }
+                    )
                 }
             }
-        )
+        }
 
-        // --- THANH CHỌN CATEGORY ---
-        Text(
-            text = "Danh mục sản phẩm",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            item {
-                CategoryChip(
-                    name = "Tất cả",
-                    isSelected = false, // Luôn false vì nhấn xong là chuyển trang luôn
-                    onClick = { onOpenCategory(-1) } // -1 đại diện cho "Tất cả"
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Popular Furniture",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = ShopColors.TextPrimary,
+                    fontWeight = FontWeight.Bold
                 )
-            }
-
-            items(categories) { category ->
-                CategoryChip(
-                    name = category.name,
-                    isSelected = false,
-                    onClick = { onOpenCategory(category.id) } // CHUYỂN SANG PRODUCTSCREEN KÈM ID
+                Text(
+                    text = "${products.size} items",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ShopColors.TextSecondary
                 )
             }
         }
 
-        // --- SẢN PHẨM GỢI Ý ---
+        items(products.take(10), key = { product -> product.id }) { product ->
+            ProductItem(
+                name = product.name,
+                price = "${product.price} VNĐ",
+                oldPrice = "",
+                discount = "",
+                imageUrl = product.imageUrl,
+                onClick = { onOpenProduct(product.id.toString()) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeHeader(onOpenCart: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(onClick = { }) {
+            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = ShopColors.TextPrimary)
+        }
+
         Text(
-            text = "Sản phẩm mới nhất",
+            text = "Odading",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(16.dp)
+            color = ShopColors.TextPrimary,
+            fontWeight = FontWeight.Bold
         )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
+        Row {
+            IconButton(onClick = { }) {
+                Icon(Icons.Default.Search, contentDescription = "Search", tint = ShopColors.TextPrimary)
+            }
+            IconButton(onClick = onOpenCart) {
+                Icon(Icons.Default.ShoppingCart, contentDescription = "Giỏ hàng", tint = ShopColors.TextPrimary)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PromoBanner() {
+    Surface(
+        shape = ShopShapes.Card,
+        color = ShopColors.Surface,
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(138.dp)
+                .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Chỉ hiện tối đa 10 sản phẩm tiêu biểu ở trang Home
-            items(products.take(10)) { product ->
-                ProductItem(
-                    name = product.name,
-                    price = "${product.price} VNĐ",
-                    oldPrice = "",
-                    discount = "",
-                    imageUrl = product.imageUrl,
-                    onClick = { onOpenProduct(product.id.toString()) }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Promo for first purchase",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = ShopColors.TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Special offers",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ShopColors.TextSecondary
+                )
+                Text(
+                    text = "40% Off Prices",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = ShopColors.WoodDark,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(ShopShapes.Image)
+                    .background(ShopColors.SurfaceSoft),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Chair",
+                    color = ShopColors.Wood,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -111,16 +233,16 @@ fun CategoryChip(
 ) {
     Surface(
         modifier = Modifier.clickable { onClick() },
-        shape = MaterialTheme.shapes.medium,
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 2.dp
+        shape = ShopShapes.Pill,
+        color = if (isSelected) ShopColors.WoodDark else ShopColors.Surface,
+        border = if (isSelected) null else BorderStroke(1.dp, ShopColors.Border)
     ) {
         Text(
             text = name,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isSelected) ShopColors.Surface else ShopColors.TextPrimary,
+            fontWeight = FontWeight.Bold
         )
     }
 }

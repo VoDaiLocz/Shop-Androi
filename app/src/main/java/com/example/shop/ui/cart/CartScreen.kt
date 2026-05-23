@@ -10,16 +10,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,16 +31,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.shop.R
 import com.example.shop.data.model.CartItem
+import com.example.shop.ui.theme.ShopColors
+import com.example.shop.ui.theme.ShopShapes
+import com.example.shop.utils.Constants
 import com.example.shop.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,20 +58,26 @@ fun CartScreen(
     onCheckout: () -> Unit,
     viewModel: CartViewModel = hiltViewModel()
 ) {
-    // Quan sát giỏ hàng lấy từ backend qua repository.
     val items by viewModel.cartItems.collectAsState(initial = emptyList())
-    // Tính tổng tiền từ danh sách hiện tại
     val totalPrice = items.sumOf { it.price * it.quantity }
 
     Scaffold(
+        containerColor = ShopColors.Background,
         topBar = {
             TopAppBar(
-                title = { Text("Giỏ hàng của tôi", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "My Cart",
+                        color = ShopColors.TextPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = ShopColors.Background)
             )
         },
         bottomBar = {
@@ -70,20 +87,27 @@ fun CartScreen(
         }
     ) { padding ->
         if (items.isEmpty()) {
-            Box(Modifier
-                .fillMaxSize()
-                .padding(padding), contentAlignment = Alignment.Center) {
-                Text("Giỏ hàng đang trống", style = MaterialTheme.typography.bodyLarge)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Giỏ hàng đang trống",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = ShopColors.TextSecondary
+                )
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(items, key = { it.id }) { item -> // Thêm key để danh sách cuộn mượt hơn
+                items(items, key = { it.id }) { item ->
                     CartItemRow(
                         item = item,
                         onIncrease = { viewModel.increaseQuantity(item) },
@@ -97,47 +121,113 @@ fun CartScreen(
 }
 
 @Composable
-fun CartItemRow(item: CartItem, onIncrease: () -> Unit, onDecrease: () -> Unit, onDelete: () -> Unit) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 4.dp)) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            // Placeholder ảnh
-            Box(Modifier
-                .size(60.dp)
-                .background(Color.LightGray))
+fun CartItemRow(
+    item: CartItem,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+    onDelete: () -> Unit
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = ShopShapes.Card,
+        colors = CardDefaults.elevatedCardColors(containerColor = ShopColors.Surface),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CartProductImage(item = item)
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 12.dp)) {
-                Text(item.productName, fontWeight = FontWeight.Bold)
-                Text("${item.price} VNĐ", color = MaterialTheme.colorScheme.primary)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
+            ) {
+                Text(
+                    item.productName,
+                    color = ShopColors.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
+                )
+                Text(
+                    "${item.price} VNĐ",
+                    color = ShopColors.Wood,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onDecrease) { Text("-") }
-                    Text("${item.quantity}")
-                    IconButton(onClick = onIncrease) { Text("+") }
+                    IconButton(onClick = onDecrease) { Text("-", color = ShopColors.TextPrimary) }
+                    Text("${item.quantity}", color = ShopColors.TextPrimary)
+                    IconButton(onClick = onIncrease) { Text("+", color = ShopColors.TextPrimary) }
                 }
             }
 
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
+                Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
             }
         }
     }
 }
 
 @Composable
+private fun CartProductImage(item: CartItem) {
+    val resolvedImageUrl = Constants.toBackendImageUrl(item.imageUrl)
+
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .clip(ShopShapes.Image)
+            .background(ShopColors.SurfaceSoft),
+        contentAlignment = Alignment.Center
+    ) {
+        if (resolvedImageUrl.isBlank()) {
+            Text("Item", color = ShopColors.Wood, style = MaterialTheme.typography.labelMedium)
+        } else {
+            AsyncImage(
+                model = resolvedImageUrl,
+                contentDescription = item.productName,
+                placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                error = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
 fun BottomCheckoutSection(total: Double, onCheckout: () -> Unit) {
-    Surface(tonalElevation = 4.dp) {
-        Row(Modifier
-            .fillMaxWidth()
-            .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+    Surface(
+        color = ShopColors.Surface,
+        shadowElevation = 6.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Column {
-                Text("Tổng tiền")
-                Text("$total VNĐ", style = MaterialTheme.typography.titleLarge, color = Color.Red)
+                Text("Tổng tiền", color = ShopColors.TextSecondary)
+                Text(
+                    "$total VNĐ",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = ShopColors.WoodDark,
+                    fontWeight = FontWeight.Bold
+                )
             }
-            Button(onClick = onCheckout) { Text("Thanh toán") }
+            Spacer(modifier = Modifier.width(14.dp))
+            Button(
+                onClick = onCheckout,
+                shape = ShopShapes.Button,
+                colors = ButtonDefaults.buttonColors(containerColor = ShopColors.WoodDark)
+            ) {
+                Text("Thanh toán")
+            }
         }
     }
 }

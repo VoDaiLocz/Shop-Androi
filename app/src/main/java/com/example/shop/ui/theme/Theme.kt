@@ -12,32 +12,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = ShopColors.SurfaceSoft,
+    secondary = ShopColors.Wood,
+    tertiary = ShopColors.Surface,
+    background = ShopColors.WoodDark,
+    surface = ShopColors.WoodDark,
+    onPrimary = ShopColors.WoodDark,
+    onSecondary = ShopColors.Surface,
+    onTertiary = ShopColors.WoodDark,
+    onBackground = ShopColors.Surface,
+    onSurface = ShopColors.Surface
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = ShopColors.WoodDark,
+    secondary = ShopColors.Wood,
+    tertiary = ShopColors.SurfaceSoft,
+    background = ShopColors.Background,
+    surface = ShopColors.Surface,
+    surfaceVariant = ShopColors.SurfaceSoft,
+    error = ShopColors.Error,
+    onPrimary = ShopColors.Surface,
+    onSecondary = ShopColors.Surface,
+    onTertiary = ShopColors.WoodDark,
+    onBackground = ShopColors.TextPrimary,
+    onSurface = ShopColors.TextPrimary,
+    onSurfaceVariant = ShopColors.TextSecondary
 )
 
 @Composable
 fun ShopTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
