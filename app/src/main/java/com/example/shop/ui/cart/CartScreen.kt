@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -169,13 +170,27 @@ fun CartItemRow(
                 }
             }
 
-            Text(
-                formatMoney(item.price * item.quantity),
-                color = ShopColors.TextPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 50.dp)
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Xóa khỏi giỏ hàng",
+                        tint = ShopColors.TextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Text(
+                    formatMoney(item.price * item.quantity),
+                    color = ShopColors.TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
         }
 
         HorizontalDivider(color = ShopColors.Border.copy(alpha = 0.7f))

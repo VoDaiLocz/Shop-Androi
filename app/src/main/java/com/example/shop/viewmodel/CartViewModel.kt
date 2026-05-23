@@ -59,9 +59,11 @@ class CartViewModel @Inject constructor(
 
     // Giảm số lượng
     fun decreaseQuantity(item: CartItem) {
-        if (item.quantity > 1) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (item.quantity > 1) {
                 repository.updateQuantity(item.copy(quantity = item.quantity - 1))
+            } else {
+                repository.deleteItem(item)
             }
         }
     }
