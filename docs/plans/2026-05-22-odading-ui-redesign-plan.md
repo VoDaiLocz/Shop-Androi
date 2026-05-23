@@ -380,5 +380,13 @@ Cập nhật 2026-05-23:
 - Checkpoint UI-05 đã hoàn tất: redesign `BottomBar.kt`.
 - Checkpoint UI-06 đã hoàn tất: chỉnh nhẹ `CartScreen.kt`, `ProfileScreen.kt`, `LoginScreen.kt`.
 - Checkpoint UI-07 đã verify: Android debug build pass, emulator cài và launch được `com.example.shop/.MainActivity`.
+- Bổ sung seed catalog ngày 2026-05-23: backend Development tự seed 8 sản phẩm nội thất nếu bảng `Products` đang rỗng. Ảnh dùng URL trực tiếp từ Pexels để Home không còn trống khi clone/chạy local lần đầu.
 
-Các thay đổi chỉ nằm ở UI Jetpack Compose. Backend, REST API, ViewModel, DTO và navigation route không đổi.
+Các thay đổi redesign chính nằm ở UI Jetpack Compose. Backend chỉ bổ sung seed dữ liệu Development để màn Home có sản phẩm mẫu; REST API contract, ViewModel, DTO và navigation route không đổi.
+
+Lưu ý sau bổ sung seed catalog:
+
+- Backend có thay đổi nhẹ trong `DatabaseSeeder.cs` và `Program.cs`.
+- Không đổi API contract.
+- Không đổi bảng/migration.
+- Seed chỉ chạy khi `Products` rỗng để không ghi đè dữ liệu admin đã tạo.
