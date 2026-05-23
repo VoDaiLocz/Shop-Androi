@@ -3,7 +3,6 @@ package com.example.shop.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,88 +27,73 @@ fun ProductItem(
     imageUrl: String,
     onClick: () -> Unit
 ) {
-    ElevatedCard(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
-        shape = ShopShapes.Card,
-        colors = CardDefaults.elevatedCardColors(containerColor = ShopColors.Surface),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+            .clickable { onClick() }
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
+        val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
 
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .clip(ShopShapes.Image)
+                .background(ShopColors.Surface)
+                .padding(8.dp)
+        ) {
+            if (resolvedImageUrl.isBlank()) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = name,
+                    tint = ShopColors.Wood,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .align(Alignment.Center)
+                )
+            } else {
+                AsyncImage(
+                    model = resolvedImageUrl,
+                    contentDescription = name,
+                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(ShopShapes.Image)
+                )
+            }
+
+            Text(
+                text = price,
+                color = ShopColors.WoodDark,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-                    .clip(ShopShapes.Image)
-                    .background(ShopColors.SurfaceSoft)
-            ) {
-                if (resolvedImageUrl.isBlank()) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentDescription = name,
-                        tint = ShopColors.Wood,
-                        modifier = Modifier
-                            .size(72.dp)
-                            .align(Alignment.Center)
-                    )
-                } else {
-                    AsyncImage(
-                        model = resolvedImageUrl,
-                        contentDescription = name,
-                        placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
-                        error = painterResource(id = R.drawable.ic_launcher_foreground),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                    .align(Alignment.TopEnd)
+                    .background(ShopColors.Surface.copy(alpha = 0.88f), ShopShapes.Pill)
+                    .padding(horizontal = 8.dp, vertical = 5.dp)
+            )
+        }
 
-                if (discount.isNotBlank()) {
-                    Surface(
-                        color = ShopColors.WoodDark,
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .align(Alignment.TopEnd)
-                    ) {
-                        Text(
-                            text = discount,
-                            color = ShopColors.Surface,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)
-                        )
-                    }
-                }
-            }
+        Text(
+            text = name,
+            maxLines = 2,
+            style = MaterialTheme.typography.bodySmall,
+            color = ShopColors.TextPrimary,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, start = 6.dp, end = 6.dp)
+        )
 
-            Column(modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
-                Text(
-                    text = name,
-                    maxLines = 2,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = ShopColors.TextPrimary,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = price,
-                    color = ShopColors.WoodDark,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                if (oldPrice.isNotBlank()) {
-                    Text(
-                        text = oldPrice,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ShopColors.TextSecondary
-                    )
-                }
-            }
+        if (discount.isNotBlank() || oldPrice.isNotBlank()) {
+            Text(
+                text = listOf(oldPrice, discount).filter { it.isNotBlank() }.joinToString("  "),
+                style = MaterialTheme.typography.labelSmall,
+                color = ShopColors.TextSecondary,
+                modifier = Modifier.padding(start = 6.dp, top = 2.dp)
+            )
         }
     }
 }

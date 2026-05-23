@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -35,12 +34,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.shop.R
 import com.example.shop.ui.components.ProductItem
 import com.example.shop.ui.theme.ShopColors
 import com.example.shop.ui.theme.ShopShapes
+import com.example.shop.utils.Constants
 import com.example.shop.viewmodel.ProductViewModel
 import com.example.shop.viewmodel.UserCategoryViewModel
 
@@ -69,7 +73,7 @@ fun HomeScreen(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            PromoBanner()
+            PromoBanner(imageUrl = products.firstOrNull()?.imageUrl.orEmpty())
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -97,7 +101,7 @@ fun HomeScreen(
 
                 items(categories) { category ->
                     CategoryChip(
-                        name = category.name.uppercase(),
+                        name = shortCategoryName(category.name).uppercase(),
                         isSelected = false,
                         onClick = { onOpenCategory(category.id) }
                     )
@@ -172,30 +176,58 @@ private fun HomeHeader(onOpenCart: () -> Unit) {
 }
 
 @Composable
-private fun PromoBanner() {
+private fun PromoBanner(imageUrl: String) {
+    val resolvedImageUrl = Constants.toBackendImageUrl(imageUrl)
+
     Surface(
-        shape = ShopShapes.Card,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
         color = ShopColors.Surface,
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(138.dp)
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .height(122.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(10.dp))
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            if (resolvedImageUrl.isBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(ShopColors.SurfaceSoft)
+                )
+            } else {
+                AsyncImage(
+                    model = resolvedImageUrl,
+                    contentDescription = "Promo furniture",
+                    placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(ShopColors.Surface.copy(alpha = 0.58f))
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 16.dp, end = 132.dp)
+            ) {
                 Text(
                     text = "Promo for first purchase",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     color = ShopColors.TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    text = "Special offers",
+                    text = "Special Offers",
                     style = MaterialTheme.typography.bodySmall,
                     color = ShopColors.TextSecondary
                 )
@@ -203,21 +235,6 @@ private fun PromoBanner() {
                     text = "40% Off Prices",
                     style = MaterialTheme.typography.bodyLarge,
                     color = ShopColors.WoodDark,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .clip(ShopShapes.Image)
-                    .background(ShopColors.SurfaceSoft),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Chair",
-                    color = ShopColors.Wood,
-                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -239,10 +256,18 @@ fun CategoryChip(
     ) {
         Text(
             text = name,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
+            modifier = Modifier.padding(horizontal = 15.dp, vertical = 9.dp),
             style = MaterialTheme.typography.labelMedium,
             color = if (isSelected) ShopColors.Surface else ShopColors.TextPrimary,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+private fun shortCategoryName(name: String): String {
+    return when {
+        name.length <= 8 -> name
+        name.contains(" ") -> name.split(" ").first()
+        else -> name.take(8)
     }
 }
