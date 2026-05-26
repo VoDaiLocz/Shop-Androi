@@ -183,7 +183,8 @@ fun ProductDetailScreen(
 
             ProductInfoCard(
                 price = formatMoney(item.price),
-                description = item.description
+                description = item.description,
+                stock = item.quantity
             )
 
             errorMessage?.let { message ->
@@ -252,18 +253,19 @@ private fun ColorSwatch(
 @Composable
 private fun ProductInfoCard(
     price: String,
-    description: String
+    description: String,
+    stock: Int
 ) {
     Surface(
         shape = ShopShapes.Card,
         color = ShopColors.Surface,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+                //.height(64.dp)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(0.86f)) {
@@ -278,12 +280,18 @@ private fun ProductInfoCard(
                     color = ShopColors.TextPrimary,
                     fontWeight = FontWeight.Medium
                 )
+                Text(
+                    text = if (stock > 0) "Kho: $stock sản phẩm" else "Hết hàng",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if(stock > 5) Color(0xFF4CAF50) else Color.Red,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Box(
                 modifier = Modifier
                     .width(1.dp)
-                    .height(40.dp)
+                    .height(45.dp)
                     .background(ShopColors.Border)
             )
 
@@ -296,7 +304,7 @@ private fun ProductInfoCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = ShopColors.TextSecondary,
                 lineHeight = 13.sp,
-                maxLines = 3,
+                maxLines = 4,
                 modifier = Modifier
                     .weight(1.14f)
                     .padding(start = 10.dp)
