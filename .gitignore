@@ -20,6 +20,11 @@ checkpoint*.xml
 backend/ShopApi/*e2e*.log
 backend/ShopApi/*e2e*.pid
 
+# Local planning/report artifacts
+docs/superpowers/plans/
+tools/
+*.docx
+
 # .NET backend build outputs
 bin/
 obj/
