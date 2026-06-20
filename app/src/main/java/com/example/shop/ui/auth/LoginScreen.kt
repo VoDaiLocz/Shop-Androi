@@ -2,7 +2,6 @@ package com.example.shop.ui.auth
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +22,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -68,21 +69,35 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isGoogleLoading by remember { mutableStateOf(false) }
     var rememberMe by remember { mutableStateOf(false) }
-    val screenBackground = Color(0xFFE7E5F6)
-    val controlBackground = Color(0xFFF4F5FA)
-    val primaryPurple = Color(0xFF7168FF)
-    val linkBlue = Color(0xFF0A7FDB)
-    val softBorder = Color(0xFFD6D7E4)
+    val controlBackground = Color.White.copy(alpha = 0.92f)
+    val primaryBlue = Color(0xFF075DCE)
+    val linkBlue = Color.White
+    val softBorder = Color.White.copy(alpha = 0.72f)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = controlBackground,
+        unfocusedContainerColor = controlBackground,
+        disabledContainerColor = controlBackground,
+        focusedBorderColor = Color.White,
+        unfocusedBorderColor = softBorder,
+        cursorColor = primaryBlue
+    )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(screenBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 34.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.login_bg_no_sun),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 34.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         Surface(
             shape = ShopShapes.Pill,
             color = Color.White,
@@ -100,7 +115,7 @@ fun LoginScreen(
         Text(
             text = "Odading",
             style = MaterialTheme.typography.titleLarge,
-            color = ShopColors.TextPrimary,
+            color = Color.White,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 12.dp)
         )
@@ -141,7 +156,7 @@ fun LoginScreen(
         Text(
             text = "Email or user name",
             style = MaterialTheme.typography.labelSmall,
-            color = ShopColors.TextPrimary,
+            color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 7.dp)
@@ -155,7 +170,8 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = ShopShapes.Button
+            shape = ShopShapes.Button,
+            colors = fieldColors
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -163,7 +179,7 @@ fun LoginScreen(
         Text(
             text = "Password",
             style = MaterialTheme.typography.labelSmall,
-            color = ShopColors.TextPrimary,
+            color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 7.dp)
@@ -178,7 +194,8 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = ShopShapes.Button
+            shape = ShopShapes.Button,
+            colors = fieldColors
         )
 
         Row(
@@ -193,15 +210,16 @@ fun LoginScreen(
                     checked = rememberMe,
                     onCheckedChange = { rememberMe = it },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = primaryPurple,
-                        uncheckedColor = ShopColors.TextSecondary
+                        checkedColor = Color.White,
+                        uncheckedColor = Color.White.copy(alpha = 0.76f),
+                        checkmarkColor = primaryBlue
                     ),
                     modifier = Modifier.size(34.dp)
                 )
                 Text(
                     text = "Remember me",
                     style = MaterialTheme.typography.labelSmall,
-                    color = ShopColors.TextPrimary
+                    color = Color.White
                 )
             }
 
@@ -234,7 +252,10 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(54.dp),
             shape = ShopShapes.Button,
-            colors = ButtonDefaults.buttonColors(containerColor = primaryPurple)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,
+                contentColor = primaryBlue
+            )
         ) {
             Text("Log in")
         }
@@ -246,6 +267,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Do you have account? Sign Up", color = linkBlue)
+        }
         }
     }
 }
