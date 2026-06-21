@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: "Optional URL to ping, for example https://your-api.onrender.com/api/products"
+        description: "Optional URL to ping"
         required: false
         type: string
+        default: "https://shop-api-xttf.onrender.com/api/products"
 
 permissions:
   contents: read
