@@ -124,9 +124,7 @@ static async Task MigrateDatabaseAsync(IServiceProvider services, bool usePostgr
     var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
     if (usePostgres)
     {
-        // Lần đầu deploy: xoá schema cũ (nếu tạo dở) rồi tạo lại toàn bộ
-        // Sau khi deploy thành công, có thể bỏ dòng EnsureDeleted
-        await db.Database.EnsureDeletedAsync();
+        // DB đã được khởi tạo thành công. Chỉ dùng EnsureCreatedAsync() để check/tạo nếu chưa có, tránh xoá DB cũ.
         await db.Database.EnsureCreatedAsync();
     }
     else
