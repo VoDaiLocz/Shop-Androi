@@ -57,8 +57,8 @@ public class ShopDbContext : DbContext
         {
             entity.ToTable(table =>
             {
-                table.HasCheckConstraint("CK_Products_Price_NonNegative", "Price >= 0");
-                table.HasCheckConstraint("CK_Products_Quantity_NonNegative", "Quantity >= 0");
+                table.HasCheckConstraint("CK_Products_Price_NonNegative", "\"Price\" >= 0");
+                table.HasCheckConstraint("CK_Products_Quantity_NonNegative", "\"Quantity\" >= 0");
             });
 
             entity.Property(product => product.Name).HasMaxLength(160).IsRequired();
@@ -79,7 +79,7 @@ public class ShopDbContext : DbContext
         {
             entity.ToTable(table =>
             {
-                table.HasCheckConstraint("CK_CartItems_Quantity_Positive", "Quantity > 0");
+                table.HasCheckConstraint("CK_CartItems_Quantity_Positive", "\"Quantity\" > 0");
             });
 
             entity.HasIndex(cartItem => new { cartItem.UserId, cartItem.ProductId }).IsUnique();
@@ -102,8 +102,8 @@ public class ShopDbContext : DbContext
         {
             entity.ToTable(table =>
             {
-                table.HasCheckConstraint("CK_Orders_TotalPrice_NonNegative", "TotalPrice >= 0");
-                table.HasCheckConstraint("CK_Orders_Status", "Status IN ('Pending', 'Shipping', 'Delivered', 'Cancelled')");
+                table.HasCheckConstraint("CK_Orders_TotalPrice_NonNegative", "\"TotalPrice\" >= 0");
+                table.HasCheckConstraint("CK_Orders_Status", "\"Status\" IN ('Pending', 'Shipping', 'Delivered', 'Cancelled')");
             });
 
             entity.Property(order => order.TotalPrice).HasPrecision(18, 2);
@@ -131,8 +131,8 @@ public class ShopDbContext : DbContext
         {
             entity.ToTable(table =>
             {
-                table.HasCheckConstraint("CK_OrderItems_Quantity_Positive", "Quantity > 0");
-                table.HasCheckConstraint("CK_OrderItems_Price_NonNegative", "Price >= 0");
+                table.HasCheckConstraint("CK_OrderItems_Quantity_Positive", "\"Quantity\" > 0");
+                table.HasCheckConstraint("CK_OrderItems_Price_NonNegative", "\"Price\" >= 0");
             });
 
             entity.Property(orderItem => orderItem.ProductName).HasMaxLength(160).IsRequired();

@@ -123,7 +123,14 @@ static async Task MigrateDatabaseAsync(IServiceProvider services, bool usePostgr
     using var scope = services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
     if (usePostgres)
-        await db.Database.EnsureCreatedAsync();   // tạo schema từ model, không cần migration files
+    {
+        // Lần đầu deploy: xoá schema cũ (nếu tạo dở) rồi tạo lại toàn bộ
+        // Sau khi deploy thành công, có thể bỏ dòng EnsureDeleted
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+    }
     else
-        await db.Database.MigrateAsync();          // dùng MySQL migration files có sẵn
+    {
+        await db.Database.MigrateAsync();
+    }
 }
