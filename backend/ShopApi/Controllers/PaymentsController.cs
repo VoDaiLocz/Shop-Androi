@@ -31,13 +31,4 @@ public class PaymentsController : ControllerBase
 
         return Ok(new { success = true });
     }
-
-    [AllowAnonymous]
-    [HttpGet("test-orders")]
-    public async Task<IActionResult> TestOrders([FromServices] ShopApi.Data.ShopDbContext db)
-    {
-        var orders = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-            db.Orders.Select(o => new { o.Id, o.Status, o.PaymentStatus, o.PaymentCode, o.TotalPrice, o.SepayTransactionId }));
-        return Ok(orders);
-    }
 }
