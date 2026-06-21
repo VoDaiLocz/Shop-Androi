@@ -102,6 +102,8 @@ else
     {
         await DatabaseSeeder.SeedAdminAsync(app.Services, allowDevelopmentDefaults: false);
     }
+    // Tự động seed cả danh mục sản phẩm ở Production để có sẵn sản phẩm test
+    await DatabaseSeeder.SeedCatalogAsync(app.Services);
 }
 
 // Configure the HTTP request pipeline.
