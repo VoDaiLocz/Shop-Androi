@@ -7,6 +7,13 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render injects PORT env var – bind Kestrel to it
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://+:{port}");
+}
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -67,14 +74,23 @@ if (app.Environment.IsDevelopment())
     await DatabaseSeeder.SeedAdminAsync(app.Services, allowDevelopmentDefaults: true);
     await DatabaseSeeder.SeedCatalogAsync(app.Services);
 }
+else
+{
+    // Production: seed admin if AdminSeed__Password is set
+    var adminPassword = app.Configuration["AdminSeed:Password"];
+    if (!string.IsNullOrWhiteSpace(adminPassword))
+    {
+        await DatabaseSeeder.SeedAdminAsync(app.Services, allowDevelopmentDefaults: false);
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();

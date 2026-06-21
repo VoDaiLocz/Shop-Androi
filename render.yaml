@@ -1,0 +1,46 @@
+# Render Blueprint – Infrastructure as Code
+# Docs: https://docs.render.com/blueprint-spec
+#
+# Sau khi push file này lên master, vào Render Dashboard:
+#   New → Blueprint → chọn repo → Render sẽ đọc file này tự động.
+
+services:
+  - type: web
+    name: shop-api
+    runtime: docker
+    dockerfilePath: backend/ShopApi/Dockerfile
+    dockerContext: backend/ShopApi
+    region: singapore       # gần VN nhất
+    plan: free              # đổi thành starter nếu cần disk
+    branch: master
+    healthCheckPath: /api/products
+    envVars:
+      # ── Database (MySQL trên cloud, ví dụ Aiven / PlanetScale / Railway) ──
+      - key: ConnectionStrings__DefaultConnection
+        sync: false          # set giá trị trên Dashboard
+      # ── JWT ──
+      - key: Jwt__Key
+        generateValue: true  # Render tự sinh random 256-bit
+      - key: Jwt__Issuer
+        value: ShopApi
+      - key: Jwt__Audience
+        value: ShopAndroid
+      # ── Admin seed ──
+      - key: AdminSeed__Email
+        value: admin@shop.local
+      - key: AdminSeed__Username
+        value: Admin
+      - key: AdminSeed__Password
+        sync: false          # set mật khẩu mạnh trên Dashboard
+      # ── SePay webhook ──
+      - key: Sepay__WebhookApiKey
+        sync: false          # set trên Dashboard
+      - key: Sepay__BankCode
+        sync: false
+      - key: Sepay__AccountNumber
+        sync: false
+      - key: Sepay__QrTemplate
+        value: compact2
+      # ── Google OAuth ──
+      - key: Google__ClientId
+        sync: false
