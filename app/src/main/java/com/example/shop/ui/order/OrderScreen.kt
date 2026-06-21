@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.shop.data.model.OrderWithItems
 import com.example.shop.utils.formatVnd
@@ -64,11 +65,31 @@ fun OrderHistoryCard(orderWithItems: OrderWithItems) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Đơn hàng #${orderWithItems.order.orderId}", fontWeight = FontWeight.Bold)
-                Text(
-                    text = orderWithItems.order.status,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = when (orderWithItems.order.status.uppercase()) {
+                            "PENDING" -> "Chờ xử lý"
+                            "SHIPPING" -> "Đang giao"
+                            "DELIVERED" -> "Đã giao"
+                            "CANCELLED" -> "Đã hủy"
+                            else -> orderWithItems.order.status
+                        },
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = when (orderWithItems.order.paymentStatus.uppercase()) {
+                            "PAID" -> "Đã thanh toán"
+                            "FAILED" -> "Thanh toán thất bại"
+                            else -> "Chờ thanh toán"
+                        },
+                        color = if (orderWithItems.order.paymentStatus.equals("Paid", ignoreCase = true)) 
+                            Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Text(
