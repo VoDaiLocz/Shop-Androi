@@ -30,6 +30,14 @@ var usePostgres = connectionString.Contains("Host=", StringComparison.OrdinalIgn
 
 if (usePostgres)
 {
+    // Render trả URI dạng postgresql://user:pass@host:port/db → convert sang key-value cho Npgsql
+    if (connectionString.StartsWith("postgres", StringComparison.OrdinalIgnoreCase))
+    {
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':');
+        connectionString = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+    }
+
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     builder.Services.AddDbContext<ShopDbContext>(options => options.UseNpgsql(connectionString));
 }
