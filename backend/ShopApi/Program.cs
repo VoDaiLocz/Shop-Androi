@@ -24,8 +24,20 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 
-builder.Services.AddDbContext<ShopDbContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
+// Auto-detect DB provider: PostgreSQL (Render) uses "Host=" or "postgresql://", MySQL (local) uses "Server="
+var usePostgres = connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase)
+    || connectionString.StartsWith("postgres", StringComparison.OrdinalIgnoreCase);
+
+if (usePostgres)
+{
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+    builder.Services.AddDbContext<ShopDbContext>(options => options.UseNpgsql(connectionString));
+}
+else
+{
+    builder.Services.AddDbContext<ShopDbContext>(options =>
+        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
+}
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) && builder.Environment.IsDevelopment())
@@ -61,7 +73,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-await MigrateDatabaseAsync(app.Services);
+await MigrateDatabaseAsync(app.Services, usePostgres);
 
 if (args.Contains("--seed-admin", StringComparer.OrdinalIgnoreCase))
 {
@@ -98,9 +110,12 @@ app.MapControllers();
 
 app.Run();
 
-static async Task MigrateDatabaseAsync(IServiceProvider services)
+static async Task MigrateDatabaseAsync(IServiceProvider services, bool usePostgres)
 {
     using var scope = services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ShopDbContext>();
-    await db.Database.MigrateAsync();
+    if (usePostgres)
+        await db.Database.EnsureCreatedAsync();   // tạo schema từ model, không cần migration files
+    else
+        await db.Database.MigrateAsync();          // dùng MySQL migration files có sẵn
 }

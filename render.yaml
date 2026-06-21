@@ -4,6 +4,14 @@
 # Sau khi push file này lên master, vào Render Dashboard:
 #   New → Blueprint → chọn repo → Render sẽ đọc file này tự động.
 
+databases:
+  - name: shop-db
+    databaseName: shop_api
+    user: shop_user
+    region: singapore
+    plan: free
+    ipAllowList: []          # cho phép Render services kết nối
+
 services:
   - type: web
     name: shop-api
@@ -11,13 +19,15 @@ services:
     dockerfilePath: backend/ShopApi/Dockerfile
     dockerContext: backend/ShopApi
     region: singapore       # gần VN nhất
-    plan: free              # đổi thành starter nếu cần disk
+    plan: free
     branch: master
     healthCheckPath: /api/products
     envVars:
-      # ── Database (MySQL trên cloud, ví dụ Aiven / PlanetScale / Railway) ──
+      # ── Database (PostgreSQL trên Render, tự link từ shop-db) ──
       - key: ConnectionStrings__DefaultConnection
-        sync: false          # set giá trị trên Dashboard
+        fromDatabase:
+          name: shop-db
+          property: connectionString
       # ── JWT ──
       - key: Jwt__Key
         generateValue: true  # Render tự sinh random 256-bit
