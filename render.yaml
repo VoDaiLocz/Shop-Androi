@@ -41,16 +41,16 @@ services:
       - key: AdminSeed__Username
         value: Admin
       - key: AdminSeed__Password
-        sync: false          # set mật khẩu mạnh trên Dashboard
+        value: "ShopAdmin@2026!"
       # ── SePay webhook ──
       - key: Sepay__WebhookApiKey
-        sync: false          # set trên Dashboard
+        value: "Vodailoc1428"
       - key: Sepay__BankCode
-        sync: false
+        value: "BIDV"
       - key: Sepay__AccountNumber
-        sync: false
+        value: "8894308684"
       - key: Sepay__QrTemplate
         value: compact2
       # ── Google OAuth ──
       - key: Google__ClientId
-        sync: false
+        value: "826757086511-es3htk7un7lq7lvlpmkqppmp3h7nnjd2.apps.googleusercontent.com"
